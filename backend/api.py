@@ -50,7 +50,6 @@ def get_user(user_id):
 
 # Posts
 
-
 @api_bp.route('/posts', methods=['POST'])
 def create_post():
     data = request.get_json() or {}

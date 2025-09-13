@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { api } from './client'
 import { Heart, Users, Play, Search, User, Home } from "lucide-react";
 import Profile from './components/Profile'
 
@@ -7,20 +6,36 @@ const App = () => {
     const [activeTab, setActiveTab] = useState("feed");
     const [newPost, setNewPost] = useState("");
     const [isEditing, setIsEditing] = useState(false);
-    const [userProfile, setUserProfile] = useState<any>({
-        name: '',
-        age: 0,
-        location: '',
-        bio: '',
-        condition: '',
-        diagnosisDate: '',
-        hospital: '',
-        doctor: '',
-        treatment: '',
-        medications: [] as string[],
-        progress: '',
-        goals: ''
-    });
+    const mock = {
+        profile: {
+            name: 'John Doe',
+            age: 42,
+            location: 'San Francisco, CA',
+            bio: 'Staying positive through my recovery journey. One day at a time!',
+            condition: 'Knee Replacement Surgery',
+            diagnosisDate: '2023-10-15',
+            hospital: 'General Hospital SF',
+            doctor: 'Dr. Emily Chen',
+            treatment: 'Physical therapy 3x/week, pain management',
+            medications: ['Ibuprofen', 'Acetaminophen', 'Vitamin D'],
+            progress: 'Week 6 of recovery - walking with cane',
+            goals: 'Return to hiking by summer 2024'
+        },
+        posts: [
+            { id: 1, user: 'Sarah K.', condition: 'Knee Surgery Recovery', content: "Today I managed to walk without crutches for the first time!", time: '2 hours ago', likes: 12, comments: 4 },
+            { id: 2, user: 'Michael T.', condition: 'Multiple Sclerosis', content: 'Finding new ways to manage fatigue has been challenging.', time: '5 hours ago', likes: 8, comments: 3 }
+        ],
+        connections: [
+            { id: 1, name: 'David R.', condition: 'Knee Surgery Recovery', journey: 'Week 3 of recovery', location: 'New York, USA', status: 'Similar journey' },
+            { id: 2, name: 'Emma W.', condition: 'Multiple Sclerosis', journey: 'Managing symptoms for 2 years', location: 'London, UK', status: 'Can offer advice' }
+        ],
+        games: [
+            { id: 1, title: 'Memory Match', description: 'Improve cognitive function with this memory matching game', category: "Cognitive", difficulty: 'Easy' },
+            { id: 2, title: 'Motion Therapy', description: 'Gentle exercises for physical rehabilitation', category: 'Physical', difficulty: 'Adaptive' }
+        ]
+    }
+
+    const [userProfile, setUserProfile] = useState<any>(mock.profile);
     const handleSaveProfile = (p: any) => {
         setUserProfile(p);
         setIsEditing(false);
@@ -34,100 +49,33 @@ const App = () => {
     const [games, setGames] = useState<any[]>([])
 
     useEffect(() => {
-        // Fetch posts, profile, connections, games from backend
-        async function loadAll() {
-            try {
-                const postsRes = await api.get('/posts')
-                if (Array.isArray(postsRes)) {
-                    const mapped = postsRes.map((d: any) => ({
-                        id: d.id ?? d._id,
-                        user: d.user || d.author || d.author_id || 'Unknown',
-                        condition: d.condition || '',
-                        content: d.content,
-                        time: d.created_at || d.time || '',
-                        likes: d.likes || 0,
-                        comments: d.comments || 0,
-                    }))
-                    setPosts(mapped)
-                }
-
-                // profile
-                const profileRes = await api.get('/profile/1')
-                if (profileRes && typeof profileRes === 'object') {
-                    const mappedProfile = {
-                        name: profileRes.name || '',
-                        age: profileRes.age || 0,
-                        location: profileRes.location || '',
-                        bio: profileRes.bio || '',
-                        condition: profileRes.condition || '',
-                        diagnosisDate: profileRes.diagnosis_date || profileRes.diagnosisDate || '',
-                        hospital: profileRes.hospital || '',
-                        doctor: profileRes.doctor || '',
-                        treatment: profileRes.treatment || '',
-                        medications: profileRes.medications || [],
-                        progress: profileRes.progress || '',
-                        goals: profileRes.goals || ''
-                    }
-                    setUserProfile(mappedProfile)
-                    setEditForm(mappedProfile)
-                }
-
-                // connections
-                const conRes = await api.get('/connections')
-                if (Array.isArray(conRes)) setConnections(conRes)
-
-                // games
-                const gamesRes = await api.get('/games')
-                if (Array.isArray(gamesRes)) setGames(gamesRes)
-            } catch (e) {
-                // ignore, keep defaults
-            }
-        }
-        loadAll()
+        // Initialize with mock data
+        setPosts(mock.posts)
+        setUserProfile(mock.profile)
+        setEditForm(mock.profile)
+        setConnections(mock.connections)
+        setGames(mock.games)
     }, [])
 
     const handleAddPost = async () => {
         if (!newPost.trim()) return
-        try {
-            // backend expects `user_id` and returns { post }
-            const created = await api.post('/posts', { user_id: 1, content: newPost, created_at: new Date().toISOString() })
-            const post = created.post ?? created
-            const mapped = {
-                id: post.id ?? post._id,
-                user: post.user || post.author || 'You',
-                condition: post.condition || '',
-                content: post.content,
-                time: post.created_at || post.time || 'Just now',
-                likes: post.likes || 0,
-                comments: post.comments || 0,
-            }
-            setPosts([mapped, ...posts])
-            setNewPost('')
-        } catch (e) {
-            // fallback to local add
-            const newPostObj = {
-                id: posts.length + 1,
-                user: "You",
-                condition: "Your Condition",
-                content: newPost,
-                time: "Just now",
-                likes: 0,
-                comments: 0,
-            };
-            setPosts([newPostObj, ...posts]);
-            setNewPost("");
-        }
+        const newPostObj = {
+            id: posts.length + 1,
+            user: "You",
+            condition: userProfile.condition || 'Your Condition',
+            content: newPost,
+            time: "Just now",
+            likes: 0,
+            comments: 0,
+        };
+        setPosts([newPostObj, ...posts]);
+        setNewPost("");
     }
 
     const handleLikePost = async (id: any) => {
         // update backend then update UI
-        try {
-            await api.post(`/posts/${id}/like`, { user_id: 'demo-user' })
-            setPosts(posts.map(post => (post.id === id ? { ...post, likes: (post.likes || 0) + 1 } : post)))
-        } catch (e) {
-            // optimistic fallback
-            setPosts(posts.map(post => (post.id === id ? { ...post, likes: (post.likes || 0) + 1 } : post)))
-        }
+    // optimistic local update
+    setPosts(posts.map(post => (post.id === id ? { ...post, likes: (post.likes || 0) + 1 } : post)))
     };
 
     const handleConnect = (id: number) => {
@@ -318,14 +266,13 @@ const App = () => {
                 {/* Profile Page */}
                 {activeTab === "profile" && (
                     <Profile
-                        userId={1}
-                        profile={userProfile}
-                        isEditing={isEditing}
-                        editForm={editForm}
-                        setEditForm={setEditForm}
-                        onToggleEdit={() => setIsEditing(!isEditing)}
-                        onLocalSave={handleSaveProfile}
-                    />
+                            profile={userProfile}
+                            isEditing={isEditing}
+                            editForm={editForm}
+                            setEditForm={setEditForm}
+                            onToggleEdit={() => setIsEditing(!isEditing)}
+                            onLocalSave={handleSaveProfile}
+                        />
                 )}
             </main>
 
