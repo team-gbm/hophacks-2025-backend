@@ -9,7 +9,7 @@
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true,
+  "noEmit": true,
     "jsx": "react-jsx",
     "strict": true,
     "noUnusedLocals": true,
@@ -17,5 +17,5 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
-  "references": [{ "path": "./tsconfig.node.json" }]
+  "references": [{ "path": "./tsconfig.config.json" }]
 }
