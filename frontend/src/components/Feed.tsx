@@ -72,7 +72,7 @@ const Feed: React.FC<FeedProps> = ({ currentUser }) => {
 
       if (response.ok) {
         const data = await response.json();
-        setPosts(posts.map(post => 
+        setPosts(posts.map(post =>
           post.id === postId ? { ...post, likes: data.likes } : post
         ));
       }
@@ -122,7 +122,7 @@ const Feed: React.FC<FeedProps> = ({ currentUser }) => {
             </div>
             <p className="text-gray-700 mb-4">{post.content}</p>
             <div className="flex items-center space-x-6 text-gray-500">
-              <button 
+              <button
                 className="flex items-center space-x-1 hover:text-red-500 transition-colors"
                 onClick={() => handleLikePost(post.id)}
               >
@@ -137,11 +137,11 @@ const Feed: React.FC<FeedProps> = ({ currentUser }) => {
                 <span>📤</span>
                 <span>Share</span>
               </button>
-            </div>
-          </div>
+            </div >
+          </div >
         ))}
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

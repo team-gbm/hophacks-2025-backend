@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from .db import get_db
+from db import get_db
 from bson.objectid import ObjectId
 
 api_bp = Blueprint('api', __name__)
@@ -82,6 +82,16 @@ def get_post(post_id):
     return jsonify(p)
 
 
+@api_bp.route('/posts', methods=['GET'])
+def list_posts():
+    """Return recent posts (simple list, not paginated)."""
+    db = get_db()
+    docs = list(db.posts.find().sort('created_at', -1).limit(100))
+    for d in docs:
+        d['_id'] = str(d['_id'])
+    return jsonify(docs)
+
+
 @api_bp.route('/posts/<post_id>/like', methods=['POST'])
 def like_post(post_id):
     db = get_db()
@@ -155,4 +165,13 @@ def get_messages(user_a, user_b):
     for m in msgs:
         m['_id'] = str(m['_id'])
     return jsonify(msgs)
+
+
+@api_bp.route('/users', methods=['GET'])
+def list_users():
+    db = get_db()
+    docs = list(db.users.find().limit(100))
+    for d in docs:
+        d['_id'] = str(d['_id'])
+    return jsonify(docs)
 
