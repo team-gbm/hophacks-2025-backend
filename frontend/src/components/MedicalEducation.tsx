@@ -2,7 +2,7 @@ import { useState } from "react";
 import { DeviceViewer3D } from "./DeviceViewer3D";
 import { ChatInterface } from "./ChatInterface";
 import { Card } from "./ui/card";
-import { Activity, Heart, Zap, Shield } from "lucide-react";
+import { Activity, Heart, Zap, Shield, Droplets, Clock } from "lucide-react";
 
 const MedicalEducation = () => {
   const [highlightedPart, setHighlightedPart] = useState<string | undefined>();
@@ -17,22 +17,32 @@ const MedicalEducation = () => {
     {
       icon: Activity,
       title: "Real-time Monitoring",
-      description: "Continuous heart rhythm monitoring with instant response"
+      description: "Continuous heart rhythm and glucose monitoring with instant response"
     },
     {
       icon: Heart,
       title: "Adaptive Therapy",
-      description: "Smart pacing that adjusts to your daily activities"
+      description: "Smart pacing and insulin delivery that adjusts to your daily activities"
+    },
+    {
+      icon: Droplets,
+      title: "Precise Delivery",
+      description: "Accurate insulin dosing with programmable basal and bolus rates"
+    },
+    {
+      icon: Clock,
+      title: "24/7 Operation",
+      description: "Continuous operation with customizable schedules and alerts"
     },
     {
       icon: Zap,
       title: "Long Battery Life",
-      description: "8-12 years of reliable power with low-energy design"
+      description: "Extended power for reliable, uninterrupted device operation"
     },
     {
       icon: Shield,
-      title: "MRI Safe",
-      description: "Compatible with medical imaging when properly configured"
+      title: "Safety Features",
+      description: "Built-in safety mechanisms and medical device compatibility"
     }
   ];
 
@@ -71,17 +81,17 @@ const MedicalEducation = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-8">
             <h2 className="text-2xl font-bold text-foreground mb-3">
-              Interactive Pacemaker Implant System
+              Interactive Medical Device Systems
             </h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Explore how a pacemaker is implanted in the human body. Click on device components or anatomy parts to learn more, 
-              or chat with our AI assistant about the implantation procedure and how the system works.
+              Explore how medical devices like pacemakers and insulin pumps work with the human body. Click on device components or anatomy parts to learn more, 
+              or chat with our AI assistant about these life-changing medical technologies.
             </p>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6 mb-12">
             <div>
-              <h3 className="text-lg font-semibold mb-3 text-medical-primary">3D Implant System</h3>
+              <h3 className="text-lg font-semibold mb-3 text-medical-primary">3D Medical Device Systems</h3>
               <DeviceViewer3D 
                 highlightedPart={highlightedPart}
                 onPartClick={handlePartMention}
