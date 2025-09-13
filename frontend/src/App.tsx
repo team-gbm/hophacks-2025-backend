@@ -97,22 +97,41 @@ const App = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <header className="bg-white shadow-sm p-4">
-                <div className="max-w-4xl mx-auto flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-blue-600">RecoveryTogether</h1>
-                    <div className="flex items-center space-x-4">
-                        <Search className="text-gray-500 cursor-pointer" size={20} />
-                        <button
-                            onClick={() => setActiveTab("profile")}
-                            className="flex items-center space-x-2 text-gray-600 hover:text-blue-600"
-                        >
-                            <User size={20} />
-                            <span>Profile</span>
-                        </button>
-                    </div>
-                </div>
-            </header>
+  {/* Header */}
+  <header className="bg-gradient-to-r from-blue-50 via-white to-purple-50 rounded-b-2xl py-6 px-4 mb-4">
+    <div className="max-w-4xl mx-auto flex justify-between items-center">
+      <h1 className="text-4xl font-extrabold text-blue-700 tracking-tight drop-shadow-sm">
+        LifeLine
+      </h1>
+      <div className="flex items-center space-x-6">
+        <h2 className="text-lg font-medium text-gray-700">
+          Welcome, <span className="font-semibold text-blue-600">{userProfile.name.split(' ')[0]}</span>!
+        </h2>
+        <button
+          className="transition-colors"
+          aria-label="Search"
+        >
+          <Search className="text-blue-500" size={22} />
+        </button>
+        <button
+          onClick={() => setActiveTab("profile")}
+          className="flex items-center space-x-2 text-gray-600 hover:text-blue-700 font-semibold"
+        >
+          <User size={20} />
+          <span>Profile</span>
+        </button>
+      </div>
+    </div>
+    <div className="max-w-4xl mx-auto flex justify-between items-center">
+      <span className="text-base italic font-medium tracking-wide">
+        A Patient for a Patient
+      </span>
+    </div>
+    <div className="max-w-4xl mx-auto mt-4">
+      <hr className="border-t border-blue-100" />
+    </div>
+  </header>
+  {/* ...rest of your content... */}
 
             {/* Navigation */}
             <nav className="bg-white shadow-sm sticky top-0 z-10">
@@ -136,7 +155,7 @@ const App = () => {
                         onClick={() => setActiveTab("games")}
                     >
                         <Play size={20} />
-                        <span className="text-sm mt-1">Games</span>
+                        <span className="text-sm mt-1">Activity Centre</span>
                     </button>
                 </div>
             </nav>

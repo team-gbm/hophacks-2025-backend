@@ -133,7 +133,7 @@ const PatientSocialApp = () => {
             {/* Header */}
             <header className="bg-white shadow-sm p-4">
                 <div className="max-w-4xl mx-auto flex justify-between items-center">
-                    <h1 className="text-2xl font-bold text-blue-600">RecoveryTogether</h1>
+                    <h1 className="text-2xl font-bold text-blue-600">LifeLine</h1>
                     <div className="flex items-center space-x-4">
                         <Search className="text-gray-500 cursor-pointer" size={20} />
                         <User className="text-gray-500 cursor-pointer" size={20} />
