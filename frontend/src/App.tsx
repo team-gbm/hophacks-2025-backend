@@ -12,6 +12,8 @@ import { useNavigate } from "react-router-dom";
 const App = () => {
     const [activeTab, setActiveTab] = useState("feed");
     const [newPost, setNewPost] = useState("");
+    const [newMediaFiles, setNewMediaFiles] = useState<File[]>([]);
+    const [newMediaPreviews, setNewMediaPreviews] = useState<{ type: 'image' | 'video'; src: string; name: string }[]>([]);
     const [isEditing, setIsEditing] = useState(false);
     // AI Search modal state (moved inside component)
     const [aiSearchOpen, setAISearchOpen] = useState(false);
@@ -99,6 +101,9 @@ const App = () => {
                 time: '2 hours ago',
                 likes: 12,
                 comments: 4,
+                media: [
+                    { type: 'image', src: '/rehab.svg', alt: 'Rehab progress' }
+                ],
                 commentData: [
                     {
                         id: 1,
@@ -139,6 +144,38 @@ const App = () => {
                 ]
             },
             {
+                id: 3,
+                user: 'Priya N.',
+                condition: 'Cardiac Device Check',
+                content: 'Device check day! Everything looks stable and battery life is good.',
+                time: '1 day ago',
+                likes: 21,
+                comments: 5,
+                media: [
+                    { type: 'image', src: '/pacemaker.svg', alt: 'Pacemaker device illustration' }
+                ],
+                commentData: [
+                    { id: 1, user: 'Alex P.', content: 'Great news—keep it up!', time: '23h ago', role: 'Supporter', condition: '—', isMedicalProfessional: false },
+                    { id: 2, user: 'Dr. Emma W.', content: 'See you at the next routine follow-up.', time: '20h ago', role: 'Cardiologist', condition: 'Medical Professional', isMedicalProfessional: true },
+                ]
+            },
+            {
+                id: 4,
+                user: 'Leo G.',
+                condition: 'Physio Routine',
+                content: 'Short step exercise video from today’s session—slow and steady.',
+                time: '2 days ago',
+                likes: 34,
+                comments: 9,
+                media: [
+                    { type: 'video', src: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', alt: 'Short exercise clip' },
+                    { type: 'image', src: '/rehab.svg', alt: 'Rehab routine overview' }
+                ],
+                commentData: [
+                    { id: 1, user: 'Sam R.', content: 'Nice form—keep breathing evenly!', time: '1d ago', role: 'Physical Therapist', condition: 'Medical Professional', isMedicalProfessional: true },
+                ]
+            },
+            {
                 id: 2,
                 user: 'Michael T.',
                 condition: 'Multiple Sclerosis',
@@ -146,6 +183,9 @@ const App = () => {
                 time: '5 hours ago',
                 likes: 8,
                 comments: 3,
+                media: [
+                    { type: 'image', src: '/bandage.svg', alt: 'Care supplies' }
+                ],
                 commentData: [
                     {
                         id: 1,
@@ -176,7 +216,7 @@ const App = () => {
                     }
                 ]
             }
-        ],
+    ],
         connections: [
             { id: 1, name: 'David R.', condition: 'Knee Surgery Recovery', journey: 'Week 3 of recovery', location: 'New York, USA', status: 'Similar journey' },
             { id: 2, name: 'Emma W.', condition: 'Multiple Sclerosis', journey: 'Managing symptoms for 2 years', location: 'London, UK', status: 'Can offer advice' }
@@ -214,7 +254,7 @@ const App = () => {
     }, [])
 
     const handleAddPost = async () => {
-        if (!newPost.trim()) return
+        if (!newPost.trim() && newMediaPreviews.length === 0) return
         const newPostObj = {
             id: posts.length + 1,
             user: "You",
@@ -223,10 +263,48 @@ const App = () => {
             time: "Just now",
             likes: 0,
             comments: 0,
+            media: newMediaPreviews,
         };
         setPosts([newPostObj, ...posts]);
         setNewPost("");
+        // Revoke object URLs and clear
+        newMediaPreviews.forEach(p => URL.revokeObjectURL(p.src));
+        setNewMediaFiles([]);
+        setNewMediaPreviews([]);
     }
+
+    const handleSelectMedia = (files: FileList | null) => {
+        if (!files) return;
+        const allowed = ['image/png','image/jpeg','image/webp','image/gif','video/mp4','video/webm','video/ogg'];
+        const maxFiles = 6;
+        const maxSize = 15 * 1024 * 1024; // 15MB per file
+        const next: { type: 'image' | 'video'; src: string; name: string }[] = [];
+        const nextFiles: File[] = [];
+        for (const f of Array.from(files)) {
+            if (!allowed.includes(f.type) || f.size > maxSize) continue;
+            const isVideo = f.type.startsWith('video/');
+            const url = URL.createObjectURL(f);
+            next.push({ type: isVideo ? 'video' : 'image', src: url, name: f.name });
+            nextFiles.push(f);
+            if (newMediaPreviews.length + next.length >= maxFiles) break;
+        }
+        setNewMediaFiles(prev => [...prev, ...nextFiles].slice(0, maxFiles));
+        setNewMediaPreviews(prev => [...prev, ...next].slice(0, maxFiles));
+    };
+
+    const handleRemovePreview = (idx: number) => {
+        setNewMediaPreviews(prev => {
+            const copy = [...prev];
+            const [removed] = copy.splice(idx, 1);
+            if (removed) URL.revokeObjectURL(removed.src);
+            return copy;
+        });
+        setNewMediaFiles(prev => {
+            const copy = [...prev];
+            copy.splice(idx, 1);
+            return copy;
+        });
+    };
 
     const handleLikePost = async (id: any) => {
         // update backend then update UI
@@ -439,6 +517,43 @@ const App = () => {
                                 value={newPost}
                                 onChange={(e) => setNewPost(e.target.value)}
                             />
+                            {/* New post media attachments */}
+                            <div className="mt-3 flex items-center justify-between gap-3 flex-wrap">
+                                <label className="text-blue-700 text-sm cursor-pointer inline-flex items-center gap-2">
+                                    <input
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/ogg"
+                                        multiple
+                                        onChange={(e) => handleSelectMedia(e.target.files)}
+                                    />
+                                    <span className="px-3 py-2 border border-blue-200 rounded hover:bg-blue-50">Add photos/videos</span>
+                                </label>
+                                {newMediaPreviews.length > 0 && (
+                                    <div className="text-xs text-gray-600">{newMediaPreviews.length} selected</div>
+                                )}
+                            </div>
+                            {newMediaPreviews.length > 0 && (
+                                <div className="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                    {newMediaPreviews.map((m, idx) => (
+                                        <div key={idx} className="relative overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+                                            {m.type === 'image' ? (
+                                                <img src={m.src} alt={m.name} className="w-full h-32 object-cover" />
+                                            ) : (
+                                                <video src={m.src} className="w-full h-32 object-cover" muted controls={false} />
+                                            )}
+                                            <button
+                                                type="button"
+                                                className="absolute top-1 right-1 bg-white/90 rounded px-2 py-0.5 text-xs text-gray-700 hover:bg-white"
+                                                onClick={() => handleRemovePreview(idx)}
+                                                aria-label="Remove media"
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                             <div className="flex justify-end mt-3">
                                 <button
                                     className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
@@ -463,6 +578,21 @@ const App = () => {
                                         </div>
                                     </div>
                                     <p className="text-gray-700 mb-4">{post.content}</p>
+                                    {/* Media gallery */}
+                                    {post.media && post.media.length > 0 && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                                            {post.media.map((m: any, idx: number) => (
+                                                <div key={idx} className="overflow-hidden rounded-lg border border-gray-100 bg-gray-50">
+                                                    {m.type === 'image' && (
+                                                        <img src={m.src} alt={m.alt || 'media'} className="w-full h-48 object-cover" />
+                                                    )}
+                                                    {m.type === 'video' && (
+                                                        <video src={m.src} controls className="w-full h-48 object-cover" />
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                     <div className="flex items-center space-x-6 text-gray-500">
                                         <button
                                             className="flex items-center space-x-1 hover:text-red-500 transition-colors"
