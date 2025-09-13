@@ -8,9 +8,8 @@ const Home: React.FC = () => {
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-purple-100">
             {/* Header */}
             <header className="w-full bg-white shadow-md py-4 px-6 flex items-center justify-between">
-                <div className="flex items-center gap-3 cursor-pointer">
-                    <img src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png" alt="HealthConnect Logo" className="w-10 h-10" />
-                    <span className="text-2xl font-bold text-blue-700 tracking-tight">HealthConnect</span>
+                <div className="flex items-center gap-3">
+                    <span className="text-5xl font-bold text-blue-700 tracking-tight">LifeLine</span>
                 </div>
                 <nav className="hidden md:flex gap-8 text-blue-700 font-semibold">
                     <button onClick={() => navigate('/onboarding')} className="hover:text-blue-900 transition">Onboarding</button>
@@ -84,7 +83,7 @@ const Home: React.FC = () => {
             {/* Call to Action Banner */}
             <section className="py-10 px-4 bg-gradient-to-r from-blue-100 to-purple-100 text-center">
                 <h2 className="text-3xl font-bold text-blue-800 mb-2">Ready to start your journey?</h2>
-                <p className="text-lg text-gray-700 mb-6">Join HealthConnect and take the first step towards a healthier, more connected life.</p>
+                <p className="text-lg text-gray-700 mb-6">Join LifeLine and take the first step towards a healthier, more connected life.</p>
                 <button
                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-10 py-3 rounded-lg text-lg shadow transition"
                     onClick={() => navigate("/onboarding")}
@@ -97,10 +96,9 @@ const Home: React.FC = () => {
             <footer className="w-full bg-white py-6 mt-auto shadow-inner">
                 <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center px-4 gap-2">
                     <div className="flex items-center gap-2">
-                        <img src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png" alt="Logo" className="w-7 h-7" />
-                        <span className="text-blue-700 font-bold">HealthConnect</span>
+                        <span className="text-blue-700 font-bold">LifeLine</span>
                     </div>
-                    <div className="text-gray-500 text-sm">&copy; {new Date().getFullYear()} HealthConnect. All rights reserved.</div>
+                    <div className="text-gray-500 text-sm">&copy; {new Date().getFullYear()} LifeLine. All rights reserved.</div>
                 </div>
             </footer>
         </div>
