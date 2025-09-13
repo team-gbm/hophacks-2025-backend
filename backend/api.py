@@ -27,30 +27,25 @@ def ai_search():
     query = (data.get('query') or '').strip()
     if not query:
         return jsonify({'error': 'query is required'}), 400
-    api_key = "AIzaSyAooHmhujRJrNfFfqAPmdm44p4j8yosQyg"
+    api_key = os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
     if not api_key:
         return jsonify({'error': 'Missing GEMINI_API_KEY/GOOGLE_API_KEY'}), 500
     try:
         genai.configure(api_key=api_key)
-        model = genai.GenerativeModel('gemini-1.5-flash')
-        prompt = f"You are a helpful health assistant. Answer succinctly with 3-5 bullet suggestions for: {query}. Include doctor types, self-care tips, and learning resources."
-        resp = model.generate_content(prompt)
-        text = (resp.text or '').strip()
+
         system_instruction = (
             "You are LifeLine AI, a warm, empathetic assistant focused on health and philanthropy. "
-            "Provide supportive, non-judgmental guidance. Offer credible, general health information, "
-            "not medical diagnosis. Always include: (1) brief summary, (2) recommended care pathways with relevant clinician types, "
-            "(3) self-care and safety notes, (4) community/financial support (low-cost clinics, assistance programs, nonprofits, support groups), "
-            "and (5) learning resources. Respond in clear Markdown with headings and concise bullet points. If the query might indicate an emergency, "
-            "advise to seek immediate local emergency help. Avoid sensitive content and respect privacy."
+            "Be concise: 3–6 short bullets or 2–4 short sentences (≤120 words total). "
+            "Offer general information only (not diagnosis). Prefer: (1) brief summary, (2) care pathway with clinician types, "
+            "(3) self-care & safety, (4) community/financial support, (5) learn more. End with one short follow-up question."
         )
 
         generation_config = {
-            'temperature': 0.6,
+            'temperature': 0.5,
             'top_p': 0.9,
-            'top_k': 40,
-            'max_output_tokens': 512,
-                'response_mime_type': 'text/plain',
+            'top_k': 32,
+            'max_output_tokens': 180,
+            'response_mime_type': 'text/plain',
         }
 
         safety_settings = [
@@ -68,14 +63,11 @@ def ai_search():
         )
 
         user_prompt = (
-            f"User question: {query}\n\n"
-            "Please answer in Markdown with these sections:\n"
-            "## Summary\n"
-            "## Recommended Care Pathways\n"
-            "## Self-care & Safety\n"
-            "## Community & Financial Support\n"
-            "## Learn More\n"
+            f"Question: {query}\n\n"
+            "Keep it crisp and friendly. End with a brief follow-up question."
         )
+        resp = model.generate_content(user_prompt)
+        text = (getattr(resp, 'text', None) or '').strip()
         return jsonify({'text': text})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -245,7 +237,7 @@ def list_users():
 # Multimodal AI chat: continuous chat with optional image inputs (health/equipment focus)
 @api_bp.route('/ai/chat', methods=['POST'])
 def ai_chat():
-    api_key = "AIzaSyAooHmhujRJrNfFfqAPmdm44p4j8yosQyg"
+    api_key = os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
     if not api_key:
         return jsonify({'error': 'Missing GEMINI_API_KEY/GOOGLE_API_KEY'}), 500
 
@@ -254,19 +246,18 @@ def ai_chat():
 
         system_instruction = (
             "You are LifeLine AI, a warm, empathetic assistant focused on health and medical equipment. "
-            "Hold an educational, supportive tone. Provide general information (not diagnosis). "
-            "When images are provided, carefully describe what is visible, identify potential medical devices or parts, "
-            "and explain typical usage, safety considerations, and maintenance. Include: (1) brief summary, (2) steps or care pathways, "
-            "(3) self-care & safety, (4) community/financial support, and (5) learn more. Use clear Markdown with headings/bullets. "
-            "If anything suggests an emergency, advise seeking local emergency help immediately."
+            "Be brief and conversational: 3–6 short bullets or 2–4 short sentences (≤120 words). "
+            "Provide general info (not diagnosis). If images are provided, describe what’s visible, identify potential devices/parts, "
+            "and note typical usage, maintenance, and safety considerations. Prefer: (1) brief summary, (2) steps/care pathway, (3) self‑care & safety, "
+            "(4) community/financial support, (5) learn more. End with one short follow-up question. If anything suggests an emergency, advise seeking local emergency help immediately."
         )
 
         generation_config = {
-            'temperature': 0.6,
+            'temperature': 0.5,
             'top_p': 0.9,
-            'top_k': 40,
-            'max_output_tokens': 1024,
-                'response_mime_type': 'text/plain',
+            'top_k': 32,
+            'max_output_tokens': 180,
+            'response_mime_type': 'text/plain',
         }
 
         safety_settings = [
