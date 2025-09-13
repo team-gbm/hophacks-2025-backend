@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
-import { Heart, Users, Play, Search, User, Home } from "lucide-react";
+import { Heart, Users, Play, Search, User, Home, Stethoscope } from "lucide-react";
 import Profile from './components/Profile'
 import Games from './components/Games';
 import Connect, { mockSuggested } from './components/Connect';
+import MedicalEducation from './components/MedicalEducation';
+import { Toaster } from "sonner";
 
 const App = () => {
     const [activeTab, setActiveTab] = useState("feed");
@@ -254,6 +256,13 @@ const App = () => {
                         <Play size={20} />
                         <span className="text-sm mt-1">Activity Centre</span>
                     </button>
+                    <button
+                        className={`flex flex-col items-center py-3 px-6 ${activeTab === "medical" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500"}`}
+                        onClick={() => setActiveTab("medical")}
+                    >
+                        <Stethoscope size={20} />
+                        <span className="text-sm mt-1">Medical Info</span>
+                    </button>
                 </div>
             </nav>
 
@@ -382,6 +391,9 @@ const App = () => {
                 {/* Games Page */}
                 {activeTab === "games" && <Games />}
 
+                {/* Medical Education Page */}
+                {activeTab === "medical" && <MedicalEducation />}
+
                 {/* Profile Page */}
                 {activeTab === "profile" && (
                     <Profile
@@ -422,6 +434,13 @@ const App = () => {
                         <span className="text-xs mt-1">Games</span>
                     </button>
                     <button
+                        className={`flex flex-col items-center py-3 px-6 ${activeTab === "medical" ? "text-blue-600" : "text-gray-500"}`}
+                        onClick={() => setActiveTab("medical")}
+                    >
+                        <Stethoscope size={20} />
+                        <span className="text-xs mt-1">Medical</span>
+                    </button>
+                    <button
                         className={`flex flex-col items-center py-3 px-6 ${activeTab === "profile" ? "text-blue-600" : "text-gray-500"}`}
                         onClick={() => setActiveTab("profile")}
                     >
@@ -430,6 +449,7 @@ const App = () => {
                     </button>
                 </div>
             </div>
+            <Toaster />
         </div>
     );
 };
