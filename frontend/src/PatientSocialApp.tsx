@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Heart, Users, Play, Search, User, Home } from "lucide-react";
 
 const PatientSocialApp = () => {
@@ -69,7 +69,7 @@ const PatientSocialApp = () => {
         },
     ]);
 
-    const [games, setGames] = useState([
+    const [games] = useState([
         {
             id: 1,
             title: "Memory Match",

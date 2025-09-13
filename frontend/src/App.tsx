@@ -1,163 +1,105 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { api } from './client'
-import { Heart, Users, Play, Search, User, Home, Settings, Calendar, Clock, MapPin, FileText } from "lucide-react";
+import { Heart, Users, Play, Search, User, Home } from "lucide-react";
+import Profile from './components/Profile'
 
 const App = () => {
     const [activeTab, setActiveTab] = useState("feed");
     const [newPost, setNewPost] = useState("");
     const [isEditing, setIsEditing] = useState(false);
-    // Mock user profile data
-    const [userProfile, setUserProfile] = useState({
-        name: "John Doe",
-        age: 42,
-        location: "San Francisco, CA",
-        bio: "Staying positive through my recovery journey. One day at a time!",
-        condition: "Knee Replacement Surgery",
-        diagnosisDate: "2023-10-15",
-        hospital: "General Hospital SF",
-        doctor: "Dr. Emily Chen",
-        treatment: "Physical therapy 3x/week, pain management",
-        medications: ["Ibuprofen", "Acetaminophen", "Vitamin D"],
-        progress: "Week 6 of recovery - walking with cane",
-        goals: "Return to hiking by summer 2024"
+    const [userProfile, setUserProfile] = useState<any>({
+        name: '',
+        age: 0,
+        location: '',
+        bio: '',
+        condition: '',
+        diagnosisDate: '',
+        hospital: '',
+        doctor: '',
+        treatment: '',
+        medications: [] as string[],
+        progress: '',
+        goals: ''
     });
-    const handleSaveProfile = () => {
-        setUserProfile(editForm);
+    const handleSaveProfile = (p: any) => {
+        setUserProfile(p);
         setIsEditing(false);
     };
     const [editForm, setEditForm] = useState(userProfile);
-    const [posts, setPosts] = useState([
-        {
-            id: 1,
-            user: "Sarah K.",
-            condition: "Knee Surgery Recovery",
-            content: "Today I managed to walk without crutches for the first time! So proud of this small victory in my recovery journey.",
-            time: "2 hours ago",
-            likes: 12,
-            comments: 4,
-        },
-        {
-            id: 2,
-            user: "Michael T.",
-            condition: "Multiple Sclerosis",
-            content: "Finding new ways to manage fatigue has been challenging but rewarding. Meditation and light stretching have helped tremendously.",
-            time: "5 hours ago",
-            likes: 8,
-            comments: 3,
-        },
-        {
-            id: 3,
-            user: "Jennifer L.",
-            condition: "Cancer Remission",
-            content: "Completed my final treatment session today! So grateful for this community's support through the tough days.",
-            time: "1 day ago",
-            likes: 24,
-            comments: 10,
-        },
-    ]);
-    const handleEditChange = (field: string, value: string | string[]) => {
-        setEditForm(prev => ({ ...prev, [field]: value }));
-    };
+    const [posts, setPosts] = useState<any[]>([])
+    // editing is handled in Profile component; keep editForm state for two-way binding
 
-    const [connections, setConnections] = useState([
-        {
-            id: 1,
-            name: "David R.",
-            condition: "Knee Surgery Recovery",
-            journey: "Week 3 of recovery",
-            location: "New York, USA",
-            status: "Similar journey",
-        },
-        {
-            id: 2,
-            name: "Emma W.",
-            condition: "Multiple Sclerosis",
-            journey: "Managing symptoms for 2 years",
-            location: "London, UK",
-            status: "Can offer advice",
-        },
-        {
-            id: 3,
-            name: "James P.",
-            condition: "Cancer Remission",
-            journey: "6 months post-treatment",
-            location: "Toronto, Canada",
-            status: "Support mentor",
-        },
-        {
-            id: 4,
-            name: "Lisa M.",
-            condition: "Knee Surgery Recovery",
-            journey: "Week 5 of recovery",
-            location: "Sydney, Australia",
-            status: "Similar journey",
-        },
-    ]);
+    const [connections, setConnections] = useState<any[]>([])
 
-    const [games] = useState([
-        {
-            id: 1,
-            title: "Memory Match",
-            description: "Improve cognitive function with this memory matching game",
-            category: "Alzheimer's/Cognitive",
-            difficulty: "Easy",
-        },
-        {
-            id: 2,
-            title: "Motion Therapy",
-            description: "Gentle exercises for physical rehabilitation",
-            category: "Physical Recovery",
-            difficulty: "Adaptive",
-        },
-        {
-            id: 3,
-            title: "Word Puzzles",
-            description: "Challenge your vocabulary and problem-solving skills",
-            category: "Cognitive Therapy",
-            difficulty: "Medium",
-        },
-        {
-            id: 4,
-            title: "Breathing Relaxation",
-            description: "Guided breathing exercises for stress management",
-            category: "Mental Wellness",
-            difficulty: "All Levels",
-        },
-    ]);
+    const [games, setGames] = useState<any[]>([])
 
     useEffect(() => {
-        // fetch posts from backend; fallback to local posts if backend unavailable
-        api.get('/posts')
-            .then((docs: any[]) => {
-                if (!Array.isArray(docs) || docs.length === 0) return
-                const mapped = docs.map(d => ({
-                    id: d._id,
-                    user: d.author_id || 'Unknown',
-                    condition: d.condition || '',
-                    content: d.content,
-                    time: d.created_at || '',
-                    likes: d.likes || 0,
-                    comments: d.comments || 0,
-                }))
-                setPosts(mapped)
-            })
-            .catch(() => {
-                // keep local seeded posts
-            })
+        // Fetch posts, profile, connections, games from backend
+        async function loadAll() {
+            try {
+                const postsRes = await api.get('/posts')
+                if (Array.isArray(postsRes)) {
+                    const mapped = postsRes.map((d: any) => ({
+                        id: d.id ?? d._id,
+                        user: d.user || d.author || d.author_id || 'Unknown',
+                        condition: d.condition || '',
+                        content: d.content,
+                        time: d.created_at || d.time || '',
+                        likes: d.likes || 0,
+                        comments: d.comments || 0,
+                    }))
+                    setPosts(mapped)
+                }
+
+                // profile
+                const profileRes = await api.get('/profile/1')
+                if (profileRes && typeof profileRes === 'object') {
+                    const mappedProfile = {
+                        name: profileRes.name || '',
+                        age: profileRes.age || 0,
+                        location: profileRes.location || '',
+                        bio: profileRes.bio || '',
+                        condition: profileRes.condition || '',
+                        diagnosisDate: profileRes.diagnosis_date || profileRes.diagnosisDate || '',
+                        hospital: profileRes.hospital || '',
+                        doctor: profileRes.doctor || '',
+                        treatment: profileRes.treatment || '',
+                        medications: profileRes.medications || [],
+                        progress: profileRes.progress || '',
+                        goals: profileRes.goals || ''
+                    }
+                    setUserProfile(mappedProfile)
+                    setEditForm(mappedProfile)
+                }
+
+                // connections
+                const conRes = await api.get('/connections')
+                if (Array.isArray(conRes)) setConnections(conRes)
+
+                // games
+                const gamesRes = await api.get('/games')
+                if (Array.isArray(gamesRes)) setGames(gamesRes)
+            } catch (e) {
+                // ignore, keep defaults
+            }
+        }
+        loadAll()
     }, [])
 
     const handleAddPost = async () => {
         if (!newPost.trim()) return
         try {
-            const created = await api.post('/posts', { author_id: 'demo-user', content: newPost, created_at: new Date().toISOString() })
+            // backend expects `user_id` and returns { post }
+            const created = await api.post('/posts', { user_id: 1, content: newPost, created_at: new Date().toISOString() })
+            const post = created.post ?? created
             const mapped = {
-                id: created._id,
-                user: created.author_id || 'You',
-                condition: created.condition || '',
-                content: created.content,
-                time: created.created_at || 'Just now',
-                likes: created.likes || 0,
-                comments: created.comments || 0,
+                id: post.id ?? post._id,
+                user: post.user || post.author || 'You',
+                condition: post.condition || '',
+                content: post.content,
+                time: post.created_at || post.time || 'Just now',
+                likes: post.likes || 0,
+                comments: post.comments || 0,
             }
             setPosts([mapped, ...posts])
             setNewPost('')
@@ -193,18 +135,7 @@ const App = () => {
             connection.id === id ? { ...connection, status: "Connected" } : connection
         ));
     };
-    const addMedication = () => {
-        setEditForm(prev => ({
-            ...prev,
-            medications: [...prev.medications, ""]
-        }));
-    };
-
-    const updateMedication = (index: number, value: string) => {
-        const updatedMeds = [...editForm.medications];
-        updatedMeds[index] = value;
-        setEditForm(prev => ({ ...prev, medications: updatedMeds }));
-    };
+    // medication editing is handled in Profile if needed; helpers removed to avoid lint warnings
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -386,244 +317,15 @@ const App = () => {
 
                 {/* Profile Page */}
                 {activeTab === "profile" && (
-                    <div className="bg-white rounded-lg shadow">
-                        {/* Profile Header */}
-                        <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-t-lg text-white">
-                            <div className="flex items-center space-x-6">
-                                <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                    <User size={48} />
-                                </div>
-                                <div>
-                                    <h1 className="text-2xl font-bold">{userProfile.name}</h1>
-                                    <p className="text-blue-100">{userProfile.age} years • {userProfile.location}</p>
-                                    <p className="mt-2">{userProfile.bio}</p>
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => setIsEditing(!isEditing)}
-                                className="mt-4 bg-white text-blue-600 px-4 py-2 rounded-lg hover:bg-blue-50 transition-colors"
-                            >
-                                {isEditing ? 'Cancel Editing' : 'Edit Profile'}
-                            </button>
-                        </div>
-
-                        {/* Profile Content */}
-                        <div className="p-6">
-                            {!isEditing ? (
-                                /* View Mode */
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {/* Medical Information */}
-                                        <div className="bg-blue-50 p-4 rounded-lg">
-                                            <h2 className="text-lg font-semibold mb-4 flex items-center">
-                                                <FileText className="mr-2" size={20} />
-                                                Medical Information
-                                            </h2>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <span className="font-medium">Condition:</span> {userProfile.condition}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Diagnosed:</span> {userProfile.diagnosisDate}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Hospital:</span> {userProfile.hospital}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Doctor:</span> {userProfile.doctor}
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Treatment Plan */}
-                                        <div className="bg-green-50 p-4 rounded-lg">
-                                            <h2 className="text-lg font-semibold mb-4 flex items-center">
-                                                <Calendar className="mr-2" size={20} />
-                                                Treatment Plan
-                                            </h2>
-                                            <div className="space-y-3">
-                                                <div>
-                                                    <span className="font-medium">Treatment:</span> {userProfile.treatment}
-                                                </div>
-                                                <div>
-                                                    <span className="font-medium">Medications:</span>
-                                                    <ul className="list-disc list-inside ml-4 mt-1">
-                                                        {userProfile.medications.map((med, index) => (
-                                                            <li key={index}>{med}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Progress & Goals */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-yellow-50 p-4 rounded-lg">
-                                            <h2 className="text-lg font-semibold mb-4 flex items-center">
-                                                <Clock className="mr-2" size={20} />
-                                                Current Progress
-                                            </h2>
-                                            <p>{userProfile.progress}</p>
-                                        </div>
-                                        <div className="bg-purple-50 p-4 rounded-lg">
-                                            <h2 className="text-lg font-semibold mb-4 flex items-center">
-                                                <MapPin className="mr-2" size={20} />
-                                                Recovery Goals
-                                            </h2>
-                                            <p>{userProfile.goals}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                /* Edit Mode */
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Full Name</label>
-                                            <input
-                                                type="text"
-                                                value={editForm.name}
-                                                onChange={(e) => handleEditChange('name', e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Age</label>
-                                            <input
-                                                type="number"
-                                                value={editForm.age}
-                                                onChange={(e) => handleEditChange('age', e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">Location</label>
-                                        <input
-                                            type="text"
-                                            value={editForm.location}
-                                            onChange={(e) => handleEditChange('location', e.target.value)}
-                                            className="w-full p-3 border border-gray-300 rounded-lg"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">Bio</label>
-                                        <textarea
-                                            value={editForm.bio}
-                                            onChange={(e) => handleEditChange('bio', e.target.value)}
-                                            className="w-full p-3 border border-gray-300 rounded-lg"
-                                            rows={3}
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Medical Condition</label>
-                                            <input
-                                                type="text"
-                                                value={editForm.condition}
-                                                onChange={(e) => handleEditChange('condition', e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Diagnosis Date</label>
-                                            <input
-                                                type="date"
-                                                value={editForm.diagnosisDate}
-                                                onChange={(e) => handleEditChange('diagnosisDate', e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Hospital</label>
-                                            <input
-                                                type="text"
-                                                value={editForm.hospital}
-                                                onChange={(e) => handleEditChange('hospital', e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Doctor</label>
-                                            <input
-                                                type="text"
-                                                value={editForm.doctor}
-                                                onChange={(e) => handleEditChange('doctor', e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium mb-2">Treatment Plan</label>
-                                        <textarea
-                                            value={editForm.treatment}
-                                            onChange={(e) => handleEditChange('treatment', e.target.value)}
-                                            className="w-full p-3 border border-gray-300 rounded-lg"
-                                            rows={3}
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <label className="block text-sm font-medium">Medications</label>
-                                            <button
-                                                onClick={addMedication}
-                                                className="text-blue-600 text-sm hover:text-blue-800"
-                                            >
-                                                + Add Medication
-                                            </button>
-                                        </div>
-                                        {editForm.medications.map((med, index) => (
-                                            <input
-                                                key={index}
-                                                type="text"
-                                                value={med}
-                                                onChange={(e) => updateMedication(index, e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg mb-2"
-                                                placeholder="Medication name"
-                                            />
-                                        ))}
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Current Progress</label>
-                                            <textarea
-                                                value={editForm.progress}
-                                                onChange={(e) => handleEditChange('progress', e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg"
-                                                rows={2}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium mb-2">Recovery Goals</label>
-                                            <textarea
-                                                value={editForm.goals}
-                                                onChange={(e) => handleEditChange('goals', e.target.value)}
-                                                className="w-full p-3 border border-gray-300 rounded-lg"
-                                                rows={2}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={handleSaveProfile}
-                                        className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                                    >
-                                        Save Changes
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <Profile
+                        userId={1}
+                        profile={userProfile}
+                        isEditing={isEditing}
+                        editForm={editForm}
+                        setEditForm={setEditForm}
+                        onToggleEdit={() => setIsEditing(!isEditing)}
+                        onLocalSave={handleSaveProfile}
+                    />
                 )}
             </main>
 

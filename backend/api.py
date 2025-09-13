@@ -54,6 +54,7 @@ def get_user(user_id):
 @api_bp.route('/posts', methods=['POST'])
 def create_post():
     data = request.get_json() or {}
+    print(data)
     db = get_db()
     post = {
         'author_id': data.get('author_id'),
@@ -65,6 +66,7 @@ def create_post():
         'created_at': data.get('created_at')
     }
     res = db.posts.insert_one(post)
+    
     post['_id'] = str(res.inserted_id)
     return jsonify(post), 201
 

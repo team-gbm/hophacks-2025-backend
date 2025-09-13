@@ -7,7 +7,7 @@ mock_users = [
         'id': 1,
         'username': 'john_doe',
         'email': 'john@example.com',
-        'name': 'John Doe',
+        'name': 'Joh Doe',
         'age': 42,
         'location': 'San Francisco, CA',
         'bio': 'Staying positive through my recovery journey. One day at a time!',
