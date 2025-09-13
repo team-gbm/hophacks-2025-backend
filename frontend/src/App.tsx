@@ -5,6 +5,7 @@ import Games from './components/Games';
 import Connect, { mockSuggested } from './components/Connect';
 import MedicalEducation from './components/MedicalEducation';
 import { Toaster } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const App = () => {
     const [activeTab, setActiveTab] = useState("feed");
@@ -26,46 +27,46 @@ const App = () => {
             goals: 'Return to hiking by summer 2024'
         },
         posts: [
-            { 
-                id: 1, 
-                user: 'Sarah K.', 
-                condition: 'Knee Surgery Recovery', 
-                content: "Today I managed to walk without crutches for the first time!", 
-                time: '2 hours ago', 
-                likes: 12, 
+            {
+                id: 1,
+                user: 'Sarah K.',
+                condition: 'Knee Surgery Recovery',
+                content: "Today I managed to walk without crutches for the first time!",
+                time: '2 hours ago',
+                likes: 12,
                 comments: 4,
                 commentData: [
-                    { 
-                        id: 1, 
-                        user: 'David R.', 
-                        content: 'That\'s amazing progress! Keep it up!', 
+                    {
+                        id: 1,
+                        user: 'David R.',
+                        content: 'That\'s amazing progress! Keep it up!',
                         time: '1 hour ago',
                         role: 'Knee Surgery Survivor',
                         condition: 'Knee Replacement',
                         isMedicalProfessional: false
                     },
-                    { 
-                        id: 2, 
-                        user: 'Dr. Emma W.', 
-                        content: 'So proud of you! I remember that feeling.', 
+                    {
+                        id: 2,
+                        user: 'Dr. Emma W.',
+                        content: 'So proud of you! I remember that feeling.',
                         time: '45 minutes ago',
                         role: 'Physical Therapist',
                         condition: 'Medical Professional',
                         isMedicalProfessional: true
                     },
-                    { 
-                        id: 3, 
-                        user: 'John M.', 
-                        content: 'Congratulations! You\'re an inspiration.', 
+                    {
+                        id: 3,
+                        user: 'John M.',
+                        content: 'Congratulations! You\'re an inspiration.',
                         time: '30 minutes ago',
                         role: 'Mobility Rehab Specialist',
                         condition: 'ACL Reconstruction',
                         isMedicalProfessional: true
                     },
-                    { 
-                        id: 4, 
-                        user: 'Lisa P.', 
-                        content: 'This gives me hope for my recovery too!', 
+                    {
+                        id: 4,
+                        user: 'Lisa P.',
+                        content: 'This gives me hope for my recovery too!',
                         time: '15 minutes ago',
                         role: 'Knee Surgery Operation',
                         condition: 'Meniscus Repair',
@@ -73,37 +74,37 @@ const App = () => {
                     }
                 ]
             },
-            { 
-                id: 2, 
-                user: 'Michael T.', 
-                condition: 'Multiple Sclerosis', 
-                content: 'Finding new ways to manage fatigue has been challenging.', 
-                time: '5 hours ago', 
-                likes: 8, 
+            {
+                id: 2,
+                user: 'Michael T.',
+                condition: 'Multiple Sclerosis',
+                content: 'Finding new ways to manage fatigue has been challenging.',
+                time: '5 hours ago',
+                likes: 8,
                 comments: 3,
                 commentData: [
-                    { 
-                        id: 1, 
-                        user: 'Sarah K.', 
-                        content: 'I understand completely. Have you tried meditation?', 
+                    {
+                        id: 1,
+                        user: 'Sarah K.',
+                        content: 'I understand completely. Have you tried meditation?',
                         time: '4 hours ago',
                         role: 'MS Survivor',
                         condition: 'Multiple Sclerosis',
                         isMedicalProfessional: false
                     },
-                    { 
-                        id: 2, 
-                        user: 'Dr. Alex T.', 
-                        content: 'Pacing yourself is key. Don\'t be too hard on yourself.', 
+                    {
+                        id: 2,
+                        user: 'Dr. Alex T.',
+                        content: 'Pacing yourself is key. Don\'t be too hard on yourself.',
                         time: '3 hours ago',
                         role: 'Neurologist',
                         condition: 'Medical Professional',
                         isMedicalProfessional: true
                     },
-                    { 
-                        id: 3, 
-                        user: 'Maria L.', 
-                        content: 'Sending you strength and support!', 
+                    {
+                        id: 3,
+                        user: 'Maria L.',
+                        content: 'Sending you strength and support!',
                         time: '2 hours ago',
                         role: 'MS Transplant Patient',
                         condition: 'Multiple Sclerosis',
@@ -193,44 +194,45 @@ const App = () => {
         }
     };
     // medication editing is handled in Profile if needed; helpers removed to avoid lint warnings
+    const navigate = useNavigate();
 
     return (
         <div className="min-h-screen bg-gray-50">
-  {/* Header */}
-  <header className="bg-gradient-to-r from-blue-50 via-white to-purple-50 rounded-b-2xl py-6 px-4 mb-4">
-    <div className="max-w-4xl mx-auto flex justify-between items-center">
-      <h1 className="text-4xl font-extrabold text-blue-700 tracking-tight drop-shadow-sm">
-        LifeLine
-      </h1>
-      <div className="flex items-center space-x-6">
-        <h2 className="text-lg font-medium text-gray-700">
-          Welcome, <span className="font-semibold text-blue-600">{userProfile.name.split(' ')[0]}</span>!
-        </h2>
-        <button
-          className="transition-colors"
-          aria-label="Search"
-        >
-          <Search className="text-blue-500" size={22} />
-        </button>
-        <button
-          onClick={() => setActiveTab("profile")}
-          className="flex items-center space-x-2 text-gray-600 hover:text-blue-700 font-semibold"
-        >
-          <User size={20} />
-          <span>Profile</span>
-        </button>
-      </div>
-    </div>
-    <div className="max-w-4xl mx-auto flex justify-between items-center">
-      <span className="text-base italic font-medium tracking-wide">
-        A Patient for a Patient
-      </span>
-    </div>
-    <div className="max-w-4xl mx-auto mt-4">
-      <hr className="border-t border-blue-100" />
-    </div>
-  </header>
-  {/* ...rest of your content... */}
+            {/* Header */}
+            <header className="bg-gradient-to-r from-blue-50 via-white to-purple-50 rounded-b-2xl py-6 px-4 mb-4">
+                <div className="max-w-4xl mx-auto flex justify-between items-center cursor-pointer" onClick={() => navigate('/')}>
+                    <h1 className="text-4xl font-extrabold text-blue-700 tracking-tight drop-shadow-sm">
+                        LifeLine
+                    </h1>
+                    <div className="flex items-center space-x-6">
+                        <h2 className="text-lg font-medium text-gray-700">
+                            Welcome, <span className="font-semibold text-blue-600">{userProfile.name.split(' ')[0]}</span>!
+                        </h2>
+                        <button
+                            className="transition-colors"
+                            aria-label="Search"
+                        >
+                            <Search className="text-blue-500" size={22} />
+                        </button>
+                        <button
+                            onClick={() => setActiveTab("profile")}
+                            className="flex items-center space-x-2 text-gray-600 hover:text-blue-700 font-semibold"
+                        >
+                            <User size={20} />
+                            <span>Profile</span>
+                        </button>
+                    </div>
+                </div>
+                <div className="max-w-4xl mx-auto flex justify-between items-center">
+                    <span className="text-base italic font-medium tracking-wide">
+                        A Patient for a Patient
+                    </span>
+                </div>
+                <div className="max-w-4xl mx-auto mt-4">
+                    <hr className="border-t border-blue-100" />
+                </div>
+            </header>
+            {/* ...rest of your content... */}
 
             {/* Navigation */}
             <nav className="bg-white shadow-sm sticky top-0 z-10">
@@ -253,7 +255,7 @@ const App = () => {
                         className={`flex flex-col items-center py-3 px-6 ${activeTab === "games" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500"}`}
                         onClick={() => setActiveTab("games")}
                     >
-                        <Stethoscope size={20}/>
+                        <Stethoscope size={20} />
                         <span className="text-sm mt-1">Heal</span>
                     </button>
                     <button
@@ -313,7 +315,7 @@ const App = () => {
                                             <Heart size={18} />
                                             <span>{post.likes}</span>
                                         </button>
-                                        <button 
+                                        <button
                                             className="flex items-center space-x-1 hover:text-blue-600 transition-colors"
                                             onClick={() => toggleComments(post.id)}
                                         >
@@ -325,7 +327,7 @@ const App = () => {
                                             <span>Share</span>
                                         </button>
                                     </div>
-                                    
+
                                     {/* Comments Section */}
                                     {expandedComments.has(post.id) && post.commentData && (
                                         <div className="mt-4 pt-4 border-t border-gray-100">
@@ -333,31 +335,27 @@ const App = () => {
                                             <div className="space-y-3">
                                                 {post.commentData.map((comment: any) => (
                                                     <div key={comment.id} className="flex items-start space-x-3">
-                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                                                            comment.isMedicalProfessional 
-                                                                ? 'bg-green-100' 
-                                                                : 'bg-gray-100'
-                                                        }`}>
-                                                            <User className={`size={16} ${
-                                                                comment.isMedicalProfessional 
-                                                                    ? 'text-green-600' 
-                                                                    : 'text-gray-500'
-                                                            }`} size={16} />
+                                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${comment.isMedicalProfessional
+                                                            ? 'bg-green-100'
+                                                            : 'bg-gray-100'
+                                                            }`}>
+                                                            <User className={`size={16} ${comment.isMedicalProfessional
+                                                                ? 'text-green-600'
+                                                                : 'text-gray-500'
+                                                                }`} size={16} />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center space-x-2 mb-1">
-                                                                <span className={`text-sm font-medium ${
-                                                                    comment.isMedicalProfessional 
-                                                                        ? 'text-green-700' 
-                                                                        : 'text-gray-900'
-                                                                }`}>
+                                                                <span className={`text-sm font-medium ${comment.isMedicalProfessional
+                                                                    ? 'text-green-700'
+                                                                    : 'text-gray-900'
+                                                                    }`}>
                                                                     {comment.user}
                                                                 </span>
-                                                                <span className={`text-xs px-2 py-1 rounded-full ${
-                                                                    comment.isMedicalProfessional 
-                                                                        ? 'bg-green-100 text-green-700' 
-                                                                        : 'bg-blue-100 text-blue-700'
-                                                                }`}>
+                                                                <span className={`text-xs px-2 py-1 rounded-full ${comment.isMedicalProfessional
+                                                                    ? 'bg-green-100 text-green-700'
+                                                                    : 'bg-blue-100 text-blue-700'
+                                                                    }`}>
                                                                     {comment.role}
                                                                 </span>
                                                                 <span className="text-xs text-gray-500">•</span>

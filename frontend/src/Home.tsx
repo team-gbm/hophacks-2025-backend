@@ -8,7 +8,7 @@ const Home: React.FC = () => {
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 to-purple-100">
             {/* Header */}
             <header className="w-full bg-white shadow-md py-4 px-6 flex items-center justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 cursor-pointer">
                     <img src="https://cdn-icons-png.flaticon.com/512/3774/3774299.png" alt="HealthConnect Logo" className="w-10 h-10" />
                     <span className="text-2xl font-bold text-blue-700 tracking-tight">HealthConnect</span>
                 </div>
