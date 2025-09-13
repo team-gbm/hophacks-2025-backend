@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from db import get_db
 from bson.objectid import ObjectId
 import os
+import json
 import google.generativeai as genai
 
 api_bp = Blueprint('api', __name__)
@@ -49,7 +50,7 @@ def ai_search():
             'top_p': 0.9,
             'top_k': 40,
             'max_output_tokens': 512,
-            'response_mime_type': 'text/markdown',
+                'response_mime_type': 'text/plain',
         }
 
         safety_settings = [
@@ -239,4 +240,99 @@ def list_users():
     for d in docs:
         d['_id'] = str(d['_id'])
     return jsonify(docs)
+
+
+# Multimodal AI chat: continuous chat with optional image inputs (health/equipment focus)
+@api_bp.route('/ai/chat', methods=['POST'])
+def ai_chat():
+    api_key = "AIzaSyAooHmhujRJrNfFfqAPmdm44p4j8yosQyg"
+    if not api_key:
+        return jsonify({'error': 'Missing GEMINI_API_KEY/GOOGLE_API_KEY'}), 500
+
+    try:
+        genai.configure(api_key=api_key)
+
+        system_instruction = (
+            "You are LifeLine AI, a warm, empathetic assistant focused on health and medical equipment. "
+            "Hold an educational, supportive tone. Provide general information (not diagnosis). "
+            "When images are provided, carefully describe what is visible, identify potential medical devices or parts, "
+            "and explain typical usage, safety considerations, and maintenance. Include: (1) brief summary, (2) steps or care pathways, "
+            "(3) self-care & safety, (4) community/financial support, and (5) learn more. Use clear Markdown with headings/bullets. "
+            "If anything suggests an emergency, advise seeking local emergency help immediately."
+        )
+
+        generation_config = {
+            'temperature': 0.6,
+            'top_p': 0.9,
+            'top_k': 40,
+            'max_output_tokens': 1024,
+                'response_mime_type': 'text/plain',
+        }
+
+        safety_settings = [
+            { 'category': 'HARM_CATEGORY_HATE_SPEECH', 'threshold': 'BLOCK_LOW_AND_ABOVE' },
+            { 'category': 'HARM_CATEGORY_HARASSMENT', 'threshold': 'BLOCK_MEDIUM_AND_ABOVE' },
+            { 'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold': 'BLOCK_MEDIUM_AND_ABOVE' },
+            { 'category': 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold': 'BLOCK_MEDIUM_AND_ABOVE' },
+        ]
+
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            system_instruction=system_instruction,
+            generation_config=generation_config,
+            safety_settings=safety_settings,
+        )
+
+        content_type = request.content_type or ''
+
+        # Parse inputs: support JSON and multipart form-data. History is an array of {role, content}
+        history = []
+        user_text = ''
+        image_parts = []
+
+        if 'application/json' in content_type:
+            body = request.get_json() or {}
+            history = body.get('messages') or body.get('history') or []
+            user_text = (body.get('message') or body.get('text') or '').strip()
+            # For JSON mode, images are not supported directly
+        else:
+            # Multipart form: expect fields 'history' (JSON string), 'message' (text), and files under 'files'
+            history_str = request.form.get('history', '[]')
+            try:
+                history = json.loads(history_str) if history_str else []
+            except Exception:
+                history = []
+            user_text = (request.form.get('message') or '').strip()
+
+            # Collect image files (png/jpeg/webp)
+            files = request.files.getlist('files') if 'files' in request.files else []
+            for f in files:
+                # Basic type/size guard
+                if f and f.mimetype in ('image/png', 'image/jpeg', 'image/webp'):
+                    data = f.read()
+                    if data and len(data) <= 5 * 1024 * 1024:  # <=5MB each
+                        image_parts.append({'mime_type': f.mimetype, 'data': data})
+
+        # Build contents from history
+        contents = []
+        for m in history[-10:]:  # limit context to last 10 exchanges
+            role = m.get('role', 'user')
+            text = (m.get('content') or '').strip()
+            if not text:
+                continue
+            parts = [{'text': text}]
+            contents.append({'role': 'user' if role == 'user' else 'model', 'parts': parts})
+
+        # Current user turn
+        user_parts = []
+        if user_text:
+            user_parts.append({'text': user_text})
+        user_parts.extend(image_parts)
+        contents.append({'role': 'user', 'parts': user_parts or [{'text': 'Describe the provided images.'}]})
+
+        resp = model.generate_content(contents)
+        text = (getattr(resp, 'text', None) or '').strip()
+        return jsonify({'text': text})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
