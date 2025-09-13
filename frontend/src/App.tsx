@@ -74,8 +74,8 @@ const App = () => {
 
     const handleLikePost = async (id: any) => {
         // update backend then update UI
-    // optimistic local update
-    setPosts(posts.map(post => (post.id === id ? { ...post, likes: (post.likes || 0) + 1 } : post)))
+        // optimistic local update
+        setPosts(posts.map(post => (post.id === id ? { ...post, likes: (post.likes || 0) + 1 } : post)))
     };
 
     const handleConnect = (id: number) => {
@@ -266,13 +266,13 @@ const App = () => {
                 {/* Profile Page */}
                 {activeTab === "profile" && (
                     <Profile
-                            profile={userProfile}
-                            isEditing={isEditing}
-                            editForm={editForm}
-                            setEditForm={setEditForm}
-                            onToggleEdit={() => setIsEditing(!isEditing)}
-                            onLocalSave={handleSaveProfile}
-                        />
+                        profile={userProfile}
+                        isEditing={isEditing}
+                        editForm={editForm}
+                        setEditForm={setEditForm}
+                        onToggleEdit={() => setIsEditing(!isEditing)}
+                        onLocalSave={handleSaveProfile}
+                    />
                 )}
             </main>
 
