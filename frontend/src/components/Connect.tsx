@@ -308,35 +308,40 @@ const Connect: React.FC<ConnectProps> = ({ connections, setConnections, connecte
       <h2 className="text-2xl font-bold mb-6">Connect with Others</h2>
 
       {/* Unified Search Bar + Condition Filter */}
-      <div className="mb-6 flex flex-col items-center">
+      <div className="mb-8 flex flex-col items-center">
         {/* Tabs */}
-        <div className="flex mb-4">
+        <div className="flex mb-2 w-full md:w-2/3 justify-center bg-gray-100 rounded-t-xl shadow-sm overflow-hidden">
           <button
-            className={`px-6 py-2 rounded-t-lg font-semibold border-b-2 transition-colors duration-150 ${activeTab === 'patients' ? 'border-blue-600 text-blue-700 bg-blue-50' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-700'}`}
+            className={`flex-1 px-6 py-3 font-semibold text-lg transition-all duration-150 border-b-4 focus:outline-none ${activeTab === 'patients' ? 'border-blue-600 text-blue-700 bg-white shadow-md z-10' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-700 hover:bg-gray-50'}`}
+            style={{borderTopLeftRadius: '0.75rem'}} // rounded-tl-xl
             onClick={() => setActiveTab('patients')}
+            tabIndex={0}
           >
             Patients
           </button>
           <button
-            className={`px-6 py-2 rounded-t-lg font-semibold border-b-2 transition-colors duration-150 ml-2 ${activeTab === 'doctors' ? 'border-blue-600 text-blue-700 bg-blue-50' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-700'}`}
+            className={`flex-1 px-6 py-3 font-semibold text-lg transition-all duration-150 border-b-4 focus:outline-none ${activeTab === 'doctors' ? 'border-blue-600 text-blue-700 bg-white shadow-md z-10' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-700 hover:bg-gray-50'}`}
+            style={{borderTopRightRadius: '0.75rem'}} // rounded-tr-xl
             onClick={() => setActiveTab('doctors')}
+            tabIndex={0}
           >
             Doctors
           </button>
         </div>
-        <div className="flex w-full md:w-2/3 bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm">
+        {/* Search Bar */}
+        <div className="flex w-full md:w-2/3 bg-white border border-gray-200 rounded-b-xl rounded-t shadow-lg overflow-hidden mt-0">
           <input
             type="text"
-            className="flex-1 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 border-none"
+            className="flex-1 px-5 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-400 border-none bg-white placeholder-gray-400"
             placeholder={activeTab === 'patients' ? "Search by name, condition, location, or journey..." : "Search by name, specialty, location, or bio..."}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
           <select
-            className="px-4 py-2 border-l border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+            className="px-5 py-3 border-l border-gray-100 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400 text-gray-700 text-base"
             value={conditionFilter}
             onChange={e => setConditionFilter(e.target.value)}
-            style={{ minWidth: 160 }}
+            style={{ minWidth: 180 }}
           >
             <option value="">All Conditions</option>
             {allConditions.map(cond => (
