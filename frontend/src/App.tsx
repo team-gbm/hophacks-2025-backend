@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Heart, Users, Play, Search, User, Home } from "lucide-react";
 import Profile from './components/Profile'
 import Games from './components/Games';
+import Connect, { mockSuggested } from './components/Connect';
 
 const App = () => {
     const [activeTab, setActiveTab] = useState("feed");
@@ -46,6 +47,10 @@ const App = () => {
     // editing is handled in Profile component; keep editForm state for two-way binding
 
     const [connections, setConnections] = useState<any[]>([])
+    // Track connected suggested users by their IDs
+    const [connectedSuggestedIds, setConnectedSuggestedIds] = useState<number[]>([]);
+    // Store all suggested users (for lookup by id)
+    const [allSuggested, setAllSuggested] = useState<any[]>([]);
 
     useEffect(() => {
         // Initialize with mock data
@@ -53,6 +58,7 @@ const App = () => {
         setUserProfile(mock.profile)
         setEditForm(mock.profile)
         setConnections(mock.connections)
+        setAllSuggested(mockSuggested);
     }, [])
 
     const handleAddPost = async () => {
@@ -80,6 +86,12 @@ const App = () => {
         setConnections(connections.map(connection =>
             connection.id === id ? { ...connection, status: "Connected" } : connection
         ));
+    };
+    // Handle connect for suggested users (AI recommendations)
+    const handleConnectSuggested = (userId: number) => {
+        if (!connectedSuggestedIds.includes(userId)) {
+            setConnectedSuggestedIds([...connectedSuggestedIds, userId]);
+        }
     };
     // medication editing is handled in Profile if needed; helpers removed to avoid lint warnings
 
@@ -193,37 +205,13 @@ const App = () => {
 
                 {/* Connect Page */}
                 {activeTab === "connect" && (
-                    <div>
-                        <h2 className="text-2xl font-bold mb-6">Connect with Others</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {connections.map((connection) => (
-                                <div key={connection.id} className="bg-white rounded-lg shadow p-6">
-                                    <div className="flex items-center mb-4">
-                                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4">
-                                            <User className="text-green-600" size={28} />
-                                        </div>
-                                        <div>
-                                            <h3 className="font-semibold text-lg">{connection.name}</h3>
-                                            <p className="text-gray-600">{connection.condition}</p>
-                                            <p className="text-sm text-gray-500">{connection.location}</p>
-                                        </div>
-                                    </div>
-                                    <div className="mb-4">
-                                        <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                                            {connection.journey}
-                                        </span>
-                                    </div>
-                                    <p className="text-green-600 font-medium mb-4">{connection.status}</p>
-                                    <button
-                                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                                        onClick={() => handleConnect(connection.id)}
-                                    >
-                                        {connection.status === "Connected" ? "Message" : "Connect"}
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+                    <Connect
+                        connections={connections}
+                        setConnections={setConnections}
+                        handleConnect={handleConnect}
+                        connectedSuggestedIds={connectedSuggestedIds}
+                        handleConnectSuggested={handleConnectSuggested}
+                    />
                 )}
 
                 {/* Games Page */}
@@ -238,6 +226,8 @@ const App = () => {
                         setEditForm={setEditForm}
                         onToggleEdit={() => setIsEditing(!isEditing)}
                         onLocalSave={handleSaveProfile}
+                        connections={connections.filter(c => c.status === 'Connected')}
+                        connectedSuggested={allSuggested.filter(u => connectedSuggestedIds.includes(u.id))}
                     />
                 )}
             </main>

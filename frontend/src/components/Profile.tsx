@@ -1,17 +1,19 @@
 import { useState } from 'react'
 import { useEffect } from 'react'
-import { UserProfile } from '../types'
-import { User, FileText, Calendar } from 'lucide-react'
+import type { UserProfile, Connection } from '../types'
+import { User, FileText, Calendar, Users } from 'lucide-react'
 
-type Props = {
-  profile: UserProfile
-  isEditing: boolean
-  editForm: UserProfile
-  setEditForm: (p: UserProfile) => void
-  onToggleEdit: () => void
-  onLocalSave?: (p: UserProfile) => void
+interface Props {
+  profile: UserProfile;
+  isEditing: boolean;
+  editForm: UserProfile;
+  setEditForm: (p: UserProfile) => void;
+  onToggleEdit: () => void;
+  onLocalSave?: (p: UserProfile) => void;
+  connections?: Connection[];
+  connectedSuggested?: Array<{ id: number; name: string; condition: string; location: string; bio?: string }>;
 }
-export default function Profile({ profile, isEditing, editForm, setEditForm, onToggleEdit, onLocalSave }: Props) {
+export default function Profile({ profile, isEditing, editForm, setEditForm, onToggleEdit, onLocalSave, connections = [], connectedSuggested = [] }: Props) {
   const [status, setStatus] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [displayProfile, setDisplayProfile] = useState<UserProfile>(profile)
@@ -97,6 +99,28 @@ export default function Profile({ profile, isEditing, editForm, setEditForm, onT
                 <div className="mt-3"><span className="font-medium">Medications:</span> {displayProfile.medications.join(', ')}</div>
               </div>
             </div>
+
+            {/* Connected People Section */}
+            {(connections.length > 0 || connectedSuggested.length > 0) && (
+              <div className="bg-purple-50 p-4 rounded-lg mt-6">
+                <h2 className="text-lg font-semibold mb-4 flex items-center"><Users className="mr-2" size={20} />Connected People</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {connections.map((c) => (
+                    <div key={c.id} className="bg-white rounded shadow p-3 flex flex-col">
+                      <span className="font-semibold">{c.name}</span>
+                      <span className="text-sm text-gray-600">{c.condition} • {c.location}</span>
+                    </div>
+                  ))}
+                  {connectedSuggested.map((u) => (
+                    <div key={u.id} className="bg-white rounded shadow p-3 flex flex-col">
+                      <span className="font-semibold">{u.name}</span>
+                      <span className="text-sm text-gray-600">{u.condition} • {u.location}</span>
+                      {u.bio && <span className="text-xs text-gray-500 italic mt-1">"{u.bio}"</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
