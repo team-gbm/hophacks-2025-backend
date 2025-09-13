@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from './client'
 import { Heart, Users, Play, Search, User, Home } from "lucide-react";
 import Profile from './components/Profile'
+import Games from './components/Games';
 
 const App = () => {
     const [activeTab, setActiveTab] = useState("feed");
@@ -281,39 +282,7 @@ const App = () => {
                 )}
 
                 {/* Games Page */}
-                {activeTab === "games" && (
-                    <div>
-                        <h2 className="text-2xl font-bold mb-6">Therapeutic Games</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {games.map((game) => (
-                                <div key={game.id} className="bg-white rounded-lg shadow overflow-hidden">
-                                    <div className="h-40 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-                                        <img
-                                            src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/ea9a6ac0-f3f7-4eb2-8823-7fae4477efcd.png"
-                                            alt="Therapeutic game interface showing cognitive exercise elements"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                    <div className="p-6">
-                                        <h3 className="font-semibold text-lg mb-2">{game.title}</h3>
-                                        <p className="text-gray-600 mb-4">{game.description}</p>
-                                        <div className="flex justify-between items-center mb-4">
-                                            <span className="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">
-                                                {game.category}
-                                            </span>
-                                            <span className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-full">
-                                                {game.difficulty}
-                                            </span>
-                                        </div>
-                                        <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
-                                            Play Now
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {activeTab === "games" && <Games />}
 
                 {/* Profile Page */}
                 {activeTab === "profile" && (
