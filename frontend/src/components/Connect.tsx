@@ -255,6 +255,7 @@ const Connect: React.FC<ConnectProps> = ({ connections, setConnections, connecte
 
   const [search, setSearch] = useState("");
   const [conditionFilter, setConditionFilter] = useState<string>("");
+  const [activeTab, setActiveTab] = useState<'patients' | 'doctors'>('patients');
 
   // Collect all unique conditions/specialties from connections, suggested users, and doctors
   const allConditions = Array.from(new Set([
@@ -307,12 +308,27 @@ const Connect: React.FC<ConnectProps> = ({ connections, setConnections, connecte
       <h2 className="text-2xl font-bold mb-6">Connect with Others</h2>
 
       {/* Unified Search Bar + Condition Filter */}
-      <div className="mb-6 flex justify-center">
+      <div className="mb-6 flex flex-col items-center">
+        {/* Tabs */}
+        <div className="flex mb-4">
+          <button
+            className={`px-6 py-2 rounded-t-lg font-semibold border-b-2 transition-colors duration-150 ${activeTab === 'patients' ? 'border-blue-600 text-blue-700 bg-blue-50' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-700'}`}
+            onClick={() => setActiveTab('patients')}
+          >
+            Patients
+          </button>
+          <button
+            className={`px-6 py-2 rounded-t-lg font-semibold border-b-2 transition-colors duration-150 ml-2 ${activeTab === 'doctors' ? 'border-blue-600 text-blue-700 bg-blue-50' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-700'}`}
+            onClick={() => setActiveTab('doctors')}
+          >
+            Doctors
+          </button>
+        </div>
         <div className="flex w-full md:w-2/3 bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm">
           <input
             type="text"
             className="flex-1 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 border-none"
-            placeholder="Search by name, condition, location, or journey..."
+            placeholder={activeTab === 'patients' ? "Search by name, condition, location, or journey..." : "Search by name, specialty, location, or bio..."}
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
@@ -330,171 +346,176 @@ const Connect: React.FC<ConnectProps> = ({ connections, setConnections, connecte
         </div>
       </div>
 
-      {/* Suggested Connections (AI-powered) */}
-      <div className="mb-10">
-        <h3 className="text-xl font-semibold mb-3 text-blue-700">Suggested Connections (AI)</h3>
-        {isLoadingSuggested ? (
-          <div className="text-gray-500">Finding like-minded people...</div>
-        ) : suggestedError ? (
-          <div className="text-red-500">{suggestedError}</div>
-        ) : filteredSuggested.length === 0 ? (
-          <div className="text-gray-500">No suggestions at this time.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {filteredSuggested.map((user) => {
-              const isConnected = connectedSuggestedIds.includes(user.id);
-              // Generate a random image for each suggested user
+      {/* Tab Content */}
+      {activeTab === 'patients' ? (
+        <>
+          {/* Suggested Connections (AI-powered) */}
+          <div className="mb-10">
+            <h3 className="text-xl font-semibold mb-3 text-blue-700">Suggested Connections (AI)</h3>
+            {isLoadingSuggested ? (
+              <div className="text-gray-500">Finding like-minded people...</div>
+            ) : suggestedError ? (
+              <div className="text-red-500">{suggestedError}</div>
+            ) : filteredSuggested.length === 0 ? (
+              <div className="text-gray-500">No suggestions at this time.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {filteredSuggested.map((user) => {
+                  const isConnected = connectedSuggestedIds.includes(user.id);
+                  // Generate a random image for each suggested user
+                  const gender = Math.random() > 0.5 ? 'men' : 'women';
+                  const imgId = Math.floor(Math.random() * 99);
+                  return (
+                    <div key={user.id} className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
+                      <div className="flex items-center mb-3">
+                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                          <img
+                            src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
+                            alt={user.name}
+                            className="w-12 h-12 object-cover rounded-full"
+                          />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-lg flex items-center gap-2">
+                            {user.name}
+                            <span className="ml-1 px-2 py-0.5 text-xs rounded bg-green-100 text-green-700 font-semibold">Patient</span>
+                          </h4>
+                          <p className="text-gray-600 text-sm">{user.condition} • {user.location}</p>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 mb-2 italic">"{user.bio}"</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-xs text-blue-800 bg-blue-100 rounded px-2 py-1">Similarity: {(user.similarity * 100).toFixed(1)}%</span>
+                        <button
+                          className={`px-4 py-1 rounded ${isConnected ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                          onClick={() => handleConnectSuggested(user.id)}
+                          disabled={isConnected}
+                        >
+                          {isConnected ? 'Connected' : 'Connect'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          {/* Existing Connections */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+            {filteredConnections.map((connection) => {
+              // Generate a random image for each connection
               const gender = Math.random() > 0.5 ? 'men' : 'women';
               const imgId = Math.floor(Math.random() * 99);
               return (
-                <div key={user.id} className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
-                  <div className="flex items-center mb-3">
-                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                <div key={connection.id} className="bg-white rounded-lg shadow p-6">
+                  <div className="flex items-center mb-4">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4 overflow-hidden">
                       <img
                         src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
-                        alt={user.name}
-                        className="w-12 h-12 object-cover rounded-full"
+                        alt={connection.name}
+                        className="w-16 h-16 object-cover rounded-full"
                       />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-lg flex items-center gap-2">
-                        {user.name}
+                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                        {connection.name}
                         <span className="ml-1 px-2 py-0.5 text-xs rounded bg-green-100 text-green-700 font-semibold">Patient</span>
-                      </h4>
-                      <p className="text-gray-600 text-sm">{user.condition} • {user.location}</p>
+                      </h3>
+                      <p className="text-gray-600">{connection.condition}</p>
+                      <p className="text-sm text-gray-500">{connection.location}</p>
                     </div>
                   </div>
-                  <p className="text-gray-700 mb-2 italic">"{user.bio}"</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <span className="text-xs text-blue-800 bg-blue-100 rounded px-2 py-1">Similarity: {(user.similarity * 100).toFixed(1)}%</span>
-                    <button
-                      className={`px-4 py-1 rounded ${isConnected ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                      onClick={() => handleConnectSuggested(user.id)}
-                      disabled={isConnected}
-                    >
-                      {isConnected ? 'Connected' : 'Connect'}
-                    </button>
+                  <div className="mb-4">
+                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                      {connection.journey}
+                    </span>
                   </div>
+                  <p className="text-green-600 font-medium mb-4">{connection.status}</p>
+                  <button
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                    onClick={() => handleConnect(connection.id)}
+                  >
+                    {connection.status === "Connected" ? "Message" : "Connect"}
+                  </button>
                 </div>
               );
             })}
           </div>
-        )}
-      </div>
-      {/* AI-Suggested Doctors Section */}
-      <div className="mb-8">
-        <h3 className="text-xl font-semibold mb-3 text-purple-700">AI-Suggested Doctors</h3>
-        {aiSuggestedDoctors.length === 0 ? (
-          <div className="text-gray-500">No AI-suggested doctors found for your profile/filter.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {aiSuggestedDoctors.map((doctor) => {
-              const gender = Math.random() > 0.5 ? 'men' : 'women';
-              const imgId = Math.floor(Math.random() * 99);
-              return (
-                <div key={doctor.id} className="bg-purple-50 rounded-lg shadow p-6 border border-purple-200">
-                  <div className="flex items-center mb-3">
-                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
-                      <img
-                        src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
-                        alt={doctor.name}
-                        className="w-12 h-12 object-cover rounded-full"
-                      />
+        </>
+      ) : (
+        <>
+          {/* AI-Suggested Doctors Section */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold mb-3 text-purple-700">AI-Suggested Doctors</h3>
+            {aiSuggestedDoctors.length === 0 ? (
+              <div className="text-gray-500">No AI-suggested doctors found for your profile/filter.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {aiSuggestedDoctors.map((doctor) => {
+                  const gender = Math.random() > 0.5 ? 'men' : 'women';
+                  const imgId = Math.floor(Math.random() * 99);
+                  return (
+                    <div key={doctor.id} className="bg-purple-50 rounded-lg shadow p-6 border border-purple-200">
+                      <div className="flex items-center mb-3">
+                        <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                          <img
+                            src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
+                            alt={doctor.name}
+                            className="w-12 h-12 object-cover rounded-full"
+                          />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-lg flex items-center gap-2">
+                            {doctor.name}
+                            <span className="ml-1 px-2 py-0.5 text-xs rounded bg-purple-200 text-purple-800 font-semibold">Doctor</span>
+                          </h4>
+                          <p className="text-gray-600 text-sm">{doctor.specialty} • {doctor.location}</p>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 mb-2 italic">"{doctor.bio}"</p>
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-lg flex items-center gap-2">
-                        {doctor.name}
-                        <span className="ml-1 px-2 py-0.5 text-xs rounded bg-purple-200 text-purple-800 font-semibold">Doctor</span>
-                      </h4>
-                      <p className="text-gray-600 text-sm">{doctor.specialty} • {doctor.location}</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-2 italic">"{doctor.bio}"</p>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
-      {/* Existing Connections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-        {filteredConnections.map((connection) => {
-          // Generate a random image for each connection
-          const gender = Math.random() > 0.5 ? 'men' : 'women';
-          const imgId = Math.floor(Math.random() * 99);
-          return (
-            <div key={connection.id} className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center mb-4">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4 overflow-hidden">
-                  <img
-                    src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
-                    alt={connection.name}
-                    className="w-16 h-16 object-cover rounded-full"
-                  />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg flex items-center gap-2">
-                    {connection.name}
-                    <span className="ml-1 px-2 py-0.5 text-xs rounded bg-green-100 text-green-700 font-semibold">Patient</span>
-                  </h3>
-                  <p className="text-gray-600">{connection.condition}</p>
-                  <p className="text-sm text-gray-500">{connection.location}</p>
-                </div>
+                  );
+                })}
               </div>
-              <div className="mb-4">
-                <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                  {connection.journey}
-                </span>
-              </div>
-              <p className="text-green-600 font-medium mb-4">{connection.status}</p>
-              <button
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                onClick={() => handleConnect(connection.id)}
-              >
-                {connection.status === "Connected" ? "Message" : "Connect"}
-              </button>
-            </div>
-          );
-        })}
-      </div>
-
-
-
-      {/* Doctors Section (separate from patients) */}
-      <div className="mb-10">
-        <h3 className="text-xl font-semibold mb-3 text-blue-700">Find a Doctor</h3>
-        {filteredDoctors.length === 0 ? (
-          <div className="text-gray-500">No doctors found for your search/filter.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {filteredDoctors.map((doctor) => {
-              const gender = Math.random() > 0.5 ? 'men' : 'women';
-              const imgId = Math.floor(Math.random() * 99);
-              return (
-                <div key={doctor.id} className="bg-yellow-50 rounded-lg shadow p-6 border border-yellow-200">
-                  <div className="flex items-center mb-3">
-                    <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
-                      <img
-                        src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
-                        alt={doctor.name}
-                        className="w-12 h-12 object-cover rounded-full"
-                      />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-lg flex items-center gap-2">
-                        {doctor.name}
-                        <span className="ml-1 px-2 py-0.5 text-xs rounded bg-yellow-200 text-yellow-800 font-semibold">Doctor</span>
-                      </h4>
-                      <p className="text-gray-600 text-sm">{doctor.specialty} • {doctor.location}</p>
-                    </div>
-                  </div>
-                  <p className="text-gray-700 mb-2 italic">"{doctor.bio}"</p>
-                </div>
-              );
-            })}
+            )}
           </div>
-        )}
-      </div>
+          {/* Doctors Section (separate from patients) */}
+          <div className="mb-10">
+            <h3 className="text-xl font-semibold mb-3 text-blue-700">Find a Doctor</h3>
+            {filteredDoctors.length === 0 ? (
+              <div className="text-gray-500">No doctors found for your search/filter.</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {filteredDoctors.map((doctor) => {
+                  const gender = Math.random() > 0.5 ? 'men' : 'women';
+                  const imgId = Math.floor(Math.random() * 99);
+                  return (
+                    <div key={doctor.id} className="bg-yellow-50 rounded-lg shadow p-6 border border-yellow-200">
+                      <div className="flex items-center mb-3">
+                        <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                          <img
+                            src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
+                            alt={doctor.name}
+                            className="w-12 h-12 object-cover rounded-full"
+                          />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-lg flex items-center gap-2">
+                            {doctor.name}
+                            <span className="ml-1 px-2 py-0.5 text-xs rounded bg-yellow-200 text-yellow-800 font-semibold">Doctor</span>
+                          </h4>
+                          <p className="text-gray-600 text-sm">{doctor.specialty} • {doctor.location}</p>
+                        </div>
+                      </div>
+                      <p className="text-gray-700 mb-2 italic">"{doctor.bio}"</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 };
