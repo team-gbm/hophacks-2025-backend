@@ -13,7 +13,7 @@ def create_app():
     app = Flask(__name__, instance_relative_config=False)
 
     # Allow configuring CORS origins (useful for React dev server)
-    cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:3000')
+    cors_origins = os.getenv('CORS_ORIGINS', 'http://localhost:5000')
     CORS(app, origins=cors_origins)
 
     # Register API blueprint under /api
