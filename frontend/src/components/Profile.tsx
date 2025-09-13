@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useEffect } from 'react'
 import { UserProfile } from '../types'
 import { User, FileText, Calendar } from 'lucide-react'
 import { api } from '../client'
@@ -18,6 +19,40 @@ export default function Profile({ userId, profile, isEditing, editForm, setEditF
   const [loading, setLoading] = useState(false)
 
   const update = (field: keyof UserProfile, value: any) => setEditForm({ ...editForm, [field]: value })
+
+  // fetch profile on mount or when userId changes
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      setStatus(null)
+      try {
+        const res = await api.get(`/profile/${userId}`)
+        if (!res || typeof res !== 'object') return
+        const mapped = {
+          name: res.name || '',
+          age: res.age || 0,
+          location: res.location || '',
+          bio: res.bio || '',
+          condition: res.condition || '',
+          diagnosisDate: res.diagnosis_date || res.diagnosisDate || '',
+          hospital: res.hospital || '',
+          doctor: res.doctor || '',
+          treatment: res.treatment || '',
+          medications: res.medications || [],
+          progress: res.progress || '',
+          goals: res.goals || ''
+        }
+        if (!cancelled) {
+          setEditForm(mapped as UserProfile)
+          onLocalSave && onLocalSave(mapped as UserProfile)
+        }
+      } catch (err: any) {
+        if (!cancelled) setStatus('Failed to load profile')
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [userId])
 
   const saveToServer = async () => {
     setLoading(true)
@@ -55,8 +90,8 @@ export default function Profile({ userId, profile, isEditing, editForm, setEditF
         progress: updatedUser.progress || '',
         goals: updatedUser.goals || ''
       }
-  setStatus('Profile saved')
-  onLocalSave && onLocalSave(mappedBack as UserProfile)
+      setStatus('Profile saved')
+      onLocalSave && onLocalSave(mappedBack as UserProfile)
     } catch (err: any) {
       setStatus(err?.message || 'Failed to save')
     } finally {

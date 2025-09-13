@@ -66,7 +66,7 @@ def create_post():
         'created_at': data.get('created_at')
     }
     res = db.posts.insert_one(post)
-    
+    print(res)
     post['_id'] = str(res.inserted_id)
     return jsonify(post), 201
 
