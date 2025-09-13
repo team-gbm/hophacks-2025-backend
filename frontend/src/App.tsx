@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, Users, Play, Search, User, Home, Stethoscope } from "lucide-react";
+import { Heart, Users, Play, User, Home, Stethoscope, Bot } from "lucide-react";
 import Profile from './components/Profile'
 import Games from './components/Games';
 import Connect, { mockSuggested } from './components/Connect';
@@ -11,6 +11,35 @@ const App = () => {
     const [activeTab, setActiveTab] = useState("feed");
     const [newPost, setNewPost] = useState("");
     const [isEditing, setIsEditing] = useState(false);
+    // AI Search modal state (moved inside component)
+    const [aiSearchOpen, setAISearchOpen] = useState(false);
+    const [aiQuery, setAIQuery] = useState("");
+    const [aiResults, setAIResults] = useState<string[]>([]);
+    const [aiLoading, setAILoading] = useState(false);
+    const aiSuggestions = [
+        "Find doctors for knee pain",
+        "What is physical therapy?",
+        "Tips for post-surgery recovery",
+        "How to manage chronic pain?"
+    ];
+
+    // Simulate AI backend call
+    const handleAISearch = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        if (!aiQuery.trim()) return;
+        setAILoading(true);
+        setAIResults([]);
+        // Simulate delay and mock results
+        setTimeout(() => {
+            setAIResults([
+                `AI Suggestion for: "${aiQuery}"`,
+                "- Connect with Dr. Emily Chen (Orthopedic)",
+                "- Read: 'Physical Therapy Basics'",
+                "- Join a support group for your condition"
+            ]);
+            setAILoading(false);
+        }, 1200);
+    };
     const mock = {
         profile: {
             name: 'John Doe',
@@ -200,8 +229,8 @@ const App = () => {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <header className="bg-gradient-to-r from-blue-50 via-white to-purple-50 rounded-b-2xl py-6 px-4 mb-4">
-                <div className="max-w-4xl mx-auto flex justify-between items-center cursor-pointer" onClick={() => navigate('/')}>
-                    <h1 className="text-4xl font-extrabold text-blue-700 tracking-tight drop-shadow-sm">
+                <div className="max-w-4xl mx-auto flex justify-between items-center cursor-pointer" >
+                    <h1 className="text-4xl font-extrabold text-blue-700 tracking-tight drop-shadow-sm" onClick={() => navigate('/')}>
                         LifeLine
                     </h1>
                     <div className="flex items-center space-x-6">
@@ -210,10 +239,58 @@ const App = () => {
                         </h2>
                         <button
                             className="transition-colors"
-                            aria-label="Search"
+                            aria-label="AI Health Search"
+                            onClick={() => setAISearchOpen(true)}
                         >
-                            <Search className="text-blue-500" size={22} />
+                            <Bot className="text-blue-500" size={24} />
                         </button>
+                        {/* AI Search Modal */}
+                        {aiSearchOpen && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+                                <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md relative">
+                                    <button
+                                        className="absolute top-2 right-2 text-gray-400 hover:text-blue-600"
+                                        onClick={() => { setAISearchOpen(false); setAIQuery(""); setAIResults([]); }}
+                                        aria-label="Close AI Search"
+                                    >
+                                        ×
+                                    </button>
+                                    <h3 className="text-xl font-bold mb-2 text-blue-700 flex items-center gap-2"><Bot size={20} />AI Health Search</h3>
+                                    <form onSubmit={handleAISearch} className="flex gap-2 mb-2">
+                                        <input
+                                            type="text"
+                                            className="flex-1 border border-blue-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                            placeholder="Ask a health question or search for help..."
+                                            value={aiQuery}
+                                            onChange={e => setAIQuery(e.target.value)}
+                                            autoFocus
+                                        />
+                                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700">Ask</button>
+                                    </form>
+                                    <div className="mb-2 text-gray-500 text-sm">Try:
+                                        <div className="flex flex-wrap gap-2 mt-1">
+                                            {aiSuggestions.map(s => (
+                                                <button
+                                                    key={s}
+                                                    className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-100 border border-blue-100"
+                                                    onClick={() => { setAIQuery(s); setAIResults([]); }}
+                                                    type="button"
+                                                >{s}</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    {aiLoading && <div className="text-blue-600 mt-4">Thinking...</div>}
+                                    {aiResults.length > 0 && (
+                                        <div className="mt-4">
+                                            <div className="font-semibold mb-2 text-gray-700">AI Results:</div>
+                                            <ul className="list-disc pl-5 space-y-1">
+                                                {aiResults.map((r, i) => <li key={i}>{r}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
                         <button
                             onClick={() => setActiveTab("profile")}
                             className="flex items-center space-x-2 text-gray-600 hover:text-blue-700 font-semibold"
