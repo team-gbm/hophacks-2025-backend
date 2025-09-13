@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Heart, Users, Play, User, Home, Stethoscope, Bot } from "lucide-react";
+import { Heart, Users, Play, User, Home, Stethoscope, Bot, Image as ImageIcon } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import Profile from './components/Profile'
 import Games from './components/Games';
 import Connect, { mockSuggested } from './components/Connect';
@@ -15,7 +17,10 @@ const App = () => {
     const [aiSearchOpen, setAISearchOpen] = useState(false);
     const [aiQuery, setAIQuery] = useState("");
     const [aiResults, setAIResults] = useState<string[]>([]);
+    const [aiMarkdown, setAIMarkdown] = useState<string>("");
     const [aiLoading, setAILoading] = useState(false);
+    const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
+    const [chatFiles, setChatFiles] = useState<File[]>([]);
     const aiSuggestions = [
         "Find doctors for knee pain",
         "What is physical therapy?",
@@ -23,22 +28,52 @@ const App = () => {
         "How to manage chronic pain?"
     ];
 
-    // Simulate AI backend call
+    // Call backend AI endpoint (Gemini proxy) - multi-turn chat with optional media
     const handleAISearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        if (!aiQuery.trim()) return;
+        const q = aiQuery.trim();
+        if (!q && chatFiles.length === 0) return;
         setAILoading(true);
         setAIResults([]);
-        // Simulate delay and mock results
-        setTimeout(() => {
-            setAIResults([
-                `AI Suggestion for: "${aiQuery}"`,
-                "- Connect with Dr. Emily Chen (Orthopedic)",
-                "- Read: 'Physical Therapy Basics'",
-                "- Join a support group for your condition"
-            ]);
+        setAIMarkdown("");
+
+        const newMessages: { role: 'user' | 'assistant'; content: string }[] = [...chatMessages, { role: 'user', content: q || (chatFiles.length ? '(sent media)' : '') }];
+        setChatMessages(newMessages);
+
+        try {
+            let data: any;
+            if (chatFiles.length > 0) {
+                const form = new FormData();
+                form.append('message', q);
+                form.append('history', JSON.stringify(newMessages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', content: m.content }))));
+                chatFiles.forEach(f => form.append('files', f));
+                const res = await fetch('/api/ai/chat', { method: 'POST', body: form });
+                data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'AI error');
+            } else {
+                const res = await fetch('/api/ai/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: q, messages: newMessages.map(m => ({ role: m.role === 'assistant' ? 'model' : 'user', content: m.content })) })
+                });
+                data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'AI error');
+            }
+
+            const text: string = data.text || '';
+            setAIMarkdown(text);
+            setChatMessages(prev => [...prev, { role: 'assistant', content: text }]);
+
+            const lines = text.split(/\n+/).filter(Boolean);
+            setAIResults(lines);
+        } catch (err: any) {
+            setAIResults([`Error: ${err.message}`]);
+            setChatMessages(prev => [...prev, { role: 'assistant', content: `Error: ${err.message}` }]);
+        } finally {
             setAILoading(false);
-        }, 1200);
+            setAIQuery("");
+            setChatFiles([]);
+        }
     };
     const mock = {
         profile: {
@@ -246,48 +281,92 @@ const App = () => {
                         </button>
                         {/* AI Search Modal */}
                         {aiSearchOpen && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-                                <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md relative">
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                                <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-xl relative">
                                     <button
                                         className="absolute top-2 right-2 text-gray-400 hover:text-blue-600"
-                                        onClick={() => { setAISearchOpen(false); setAIQuery(""); setAIResults([]); }}
+                                        onClick={() => { setAISearchOpen(false); setAIQuery(""); setAIResults([]); setChatMessages([]); setChatFiles([]); setAIMarkdown(""); }}
                                         aria-label="Close AI Search"
                                     >
                                         ×
                                     </button>
-                                    <h3 className="text-xl font-bold mb-2 text-blue-700 flex items-center gap-2"><Bot size={20} />AI Health Search</h3>
-                                    <form onSubmit={handleAISearch} className="flex gap-2 mb-2">
-                                        <input
-                                            type="text"
-                                            className="flex-1 border border-blue-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                            placeholder="Ask a health question or search for help..."
-                                            value={aiQuery}
-                                            onChange={e => setAIQuery(e.target.value)}
-                                            autoFocus
-                                        />
-                                        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700">Ask</button>
-                                    </form>
-                                    <div className="mb-2 text-gray-500 text-sm">Try:
-                                        <div className="flex flex-wrap gap-2 mt-1">
-                                            {aiSuggestions.map(s => (
-                                                <button
-                                                    key={s}
-                                                    className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-100 border border-blue-100"
-                                                    onClick={() => { setAIQuery(s); setAIResults([]); }}
-                                                    type="button"
-                                                >{s}</button>
-                                            ))}
+                                    <h3 className="text-xl font-bold mb-3 text-blue-700 flex items-center gap-2"><Bot size={20} />LifeLine AI Assistant</h3>
+                                    <div className="flex flex-col gap-3">
+                                        {/* Chat transcript */}
+                                        <div className="border rounded-md p-3 h-72 overflow-y-auto bg-gray-50">
+                                            {chatMessages.length === 0 && (
+                                                <div className="text-sm text-gray-500">Ask a health question, share symptoms, or upload equipment images (e.g., pacemaker, glucometer, brace) for guidance.</div>
+                                            )}
+                                            <div className="space-y-3">
+                                                {chatMessages.map((m, i) => (
+                                                    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                                        <div className={`max-w-[80%] rounded-lg p-2 text-sm ${m.role === 'user' ? 'bg-blue-600 text-white' : 'bg-white border'}`}>
+                                                            {m.role === 'assistant' ? (
+                                                                <div className="prose prose-blue max-w-none">
+                                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                                                                </div>
+                                                            ) : (
+                                                                <div>{m.content}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {aiLoading && <div className="text-blue-600 text-sm">Thinking…</div>}
+                                            </div>
                                         </div>
+
+                                        {/* Input row */}
+                                        <form onSubmit={handleAISearch} className="flex gap-2 items-center">
+                                            <input
+                                                type="text"
+                                                className="flex-1 border border-blue-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                                placeholder="Type your question…"
+                                                value={aiQuery}
+                                                onChange={e => setAIQuery(e.target.value)}
+                                            />
+                                            <label className="cursor-pointer inline-flex items-center gap-1 text-blue-700 text-sm">
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="image/png,image/jpeg,image/webp"
+                                                    multiple
+                                                    onChange={e => setChatFiles(e.target.files ? Array.from(e.target.files) : [])}
+                                                />
+                                                <ImageIcon size={18} /> Media
+                                            </label>
+                                            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700" disabled={aiLoading}>
+                                                Send
+                                            </button>
+                                        </form>
+                                        {/* Selected files preview */}
+                                        {chatFiles.length > 0 && (
+                                            <div className="text-xs text-gray-600">Selected: {chatFiles.map(f => f.name).join(', ')}</div>
+                                        )}
+
+                                        {/* Suggestions */}
+                                        <div className="mb-1 text-gray-500 text-sm">Try:
+                                            <div className="flex flex-wrap gap-2 mt-1">
+                                                {aiSuggestions.map(s => (
+                                                    <button
+                                                        key={s}
+                                                        className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-100 border border-blue-100"
+                                                        onClick={() => { setAIQuery(s); }}
+                                                        type="button"
+                                                    >{s}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Latest assistant response in Markdown (optional) */}
+                                        {!aiLoading && aiMarkdown && (
+                                            <div className="mt-1">
+                                                <div className="font-semibold mb-1 text-gray-700">Latest Answer</div>
+                                                <div className="prose prose-blue max-w-none text-sm">
+                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiMarkdown}</ReactMarkdown>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
-                                    {aiLoading && <div className="text-blue-600 mt-4">Thinking...</div>}
-                                    {aiResults.length > 0 && (
-                                        <div className="mt-4">
-                                            <div className="font-semibold mb-2 text-gray-700">AI Results:</div>
-                                            <ul className="list-disc pl-5 space-y-1">
-                                                {aiResults.map((r, i) => <li key={i}>{r}</li>)}
-                                            </ul>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         )}
