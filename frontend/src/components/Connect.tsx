@@ -8,6 +8,14 @@ interface Connection {
   location: string;
   status: string;
 }
+
+interface Doctor {
+  id: number;
+  name: string;
+  specialty: string;
+  location: string;
+  bio: string;
+}
 interface SuggestedUser {
   id: number;
   name: string;
@@ -68,6 +76,18 @@ const mockConnections: Connection[] = [
   { id: 49, name: 'Megan T.', condition: 'Eczema', journey: 'Allergy management', location: 'Boston, USA', status: 'Skin care' },
   { id: 50, name: 'Samuel W.', condition: 'Gout', journey: 'Diet change', location: 'Johannesburg, South Africa', status: 'Advice' },
 ];
+
+const mockDoctors: Doctor[] = [
+  { id: 201, name: 'Dr. Priya Mehta', specialty: 'Endocrinology', location: 'Boston, USA', bio: 'Specialist in diabetes and metabolic disorders.' },
+  { id: 202, name: 'Dr. John Kim', specialty: 'Neurology', location: 'San Francisco, USA', bio: 'Expert in MS, epilepsy, and chronic pain.' },
+  { id: 203, name: 'Dr. Fatima El-Sayed', specialty: 'Rheumatology', location: 'Cairo, Egypt', bio: 'Focus on autoimmune and joint conditions.' },
+  { id: 204, name: 'Dr. Lucas Rossi', specialty: 'Cardiology', location: 'Rome, Italy', bio: 'Heart health and cardiac rehab.' },
+  { id: 205, name: 'Dr. Ming Zhao', specialty: 'Psychiatry', location: 'Shanghai, China', bio: 'Mental health, mood, and anxiety disorders.' },
+  { id: 206, name: 'Dr. Aisha Patel', specialty: 'Oncology', location: 'London, UK', bio: 'Cancer care and survivorship.' },
+  { id: 207, name: 'Dr. George Mensah', specialty: 'Hematology', location: 'Accra, Ghana', bio: 'Blood disorders and sickle cell specialist.' },
+  { id: 208, name: 'Dr. Sofia Delgado', specialty: 'Pulmonology', location: 'Barcelona, Spain', bio: 'Asthma, COPD, and lung health.' },
+];
+
 export const mockSuggested: SuggestedUser[] = [
   { id: 101, name: "Alice Smith", bio: "Runner, MS warrior, love to share tips!", similarity: 0.92, condition: "Multiple Sclerosis", location: "Boston, MA" },
   { id: 102, name: "Bob Lee", bio: "Recovering from knee surgery, hiking enthusiast.", similarity: 0.89, condition: "Knee Surgery Recovery", location: "Denver, CO" },
@@ -212,8 +232,21 @@ const Connect: React.FC<ConnectProps> = ({ connections, setConnections, connecte
         setConnections(connections.map(connection =>
           connection.id === userId ? data.connection : connection
         ));
+      } else {
+        // If using mock data, update status locally
+        setConnections(connections.map(connection =>
+          connection.id === userId
+            ? { ...connection, status: 'Connected' }
+            : connection
+        ));
       }
     } catch (error) {
+      // If fetch fails (mock mode), update status locally
+      setConnections(connections.map(connection =>
+        connection.id === userId
+          ? { ...connection, status: 'Connected' }
+          : connection
+      ));
       console.error('Failed to connect:', error);
     }
   };
@@ -221,34 +254,80 @@ const Connect: React.FC<ConnectProps> = ({ connections, setConnections, connecte
 
 
   const [search, setSearch] = useState("");
+  const [conditionFilter, setConditionFilter] = useState<string>("");
 
-  // Filtered lists based on search
-  const filteredSuggested = suggested.filter(user =>
-    user.name.toLowerCase().includes(search.toLowerCase()) ||
-    user.condition.toLowerCase().includes(search.toLowerCase()) ||
-    user.location.toLowerCase().includes(search.toLowerCase()) ||
-    user.bio.toLowerCase().includes(search.toLowerCase())
-  );
-  const filteredConnections = connections.filter(connection =>
-    connection.name.toLowerCase().includes(search.toLowerCase()) ||
-    connection.condition.toLowerCase().includes(search.toLowerCase()) ||
-    connection.location.toLowerCase().includes(search.toLowerCase()) ||
-    connection.journey.toLowerCase().includes(search.toLowerCase())
-  );
+  // Collect all unique conditions/specialties from connections, suggested users, and doctors
+  const allConditions = Array.from(new Set([
+    ...connections.map(c => c.condition),
+    ...suggested.map(s => s.condition),
+    ...mockDoctors.map(d => d.specialty)
+  ])).sort();
+
+  // Filtered lists based on search and condition
+  const filteredSuggested = suggested.filter(user => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(search.toLowerCase()) ||
+      user.condition.toLowerCase().includes(search.toLowerCase()) ||
+      user.location.toLowerCase().includes(search.toLowerCase()) ||
+      user.bio.toLowerCase().includes(search.toLowerCase());
+    const matchesCondition = !conditionFilter || user.condition === conditionFilter;
+    return matchesSearch && matchesCondition;
+  });
+  const filteredConnections = connections.filter(connection => {
+    const matchesSearch =
+      connection.name.toLowerCase().includes(search.toLowerCase()) ||
+      connection.condition.toLowerCase().includes(search.toLowerCase()) ||
+      connection.location.toLowerCase().includes(search.toLowerCase()) ||
+      connection.journey.toLowerCase().includes(search.toLowerCase());
+    const matchesCondition = !conditionFilter || connection.condition === conditionFilter;
+    return matchesSearch && matchesCondition;
+  });
+  const filteredDoctors = mockDoctors.filter(doctor => {
+    const matchesSearch =
+      doctor.name.toLowerCase().includes(search.toLowerCase()) ||
+      doctor.specialty.toLowerCase().includes(search.toLowerCase()) ||
+      doctor.location.toLowerCase().includes(search.toLowerCase()) ||
+      doctor.bio.toLowerCase().includes(search.toLowerCase());
+    const matchesCondition = !conditionFilter || doctor.specialty === conditionFilter;
+    return matchesSearch && matchesCondition;
+  });
+
+  // Simulate AI-suggested doctors: pick top 2-3 relevant doctors based on filter (e.g., specialty matches conditionFilter or random if none)
+  let aiSuggestedDoctors: Doctor[] = [];
+  if (conditionFilter) {
+    aiSuggestedDoctors = mockDoctors.filter(d => d.specialty === conditionFilter).slice(0, 3);
+  }
+  if (aiSuggestedDoctors.length === 0) {
+    // fallback: pick 2 random doctors
+    aiSuggestedDoctors = mockDoctors.slice(0, 2);
+  }
 
   return (
     <div>
       <h2 className="text-2xl font-bold mb-6">Connect with Others</h2>
 
-      {/* Search Bar */}
+      {/* Unified Search Bar + Condition Filter */}
       <div className="mb-6 flex justify-center">
-        <input
-          type="text"
-          className="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          placeholder="Search by name, condition, location, or journey..."
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-        />
+        <div className="flex w-full md:w-2/3 bg-white border border-gray-300 rounded-lg overflow-hidden shadow-sm">
+          <input
+            type="text"
+            className="flex-1 px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 border-none"
+            placeholder="Search by name, condition, location, or journey..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <select
+            className="px-4 py-2 border-l border-gray-200 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700"
+            value={conditionFilter}
+            onChange={e => setConditionFilter(e.target.value)}
+            style={{ minWidth: 160 }}
+          >
+            <option value="">All Conditions</option>
+            {allConditions.map(cond => (
+              <option key={cond} value={cond}>{cond}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Suggested Connections (AI-powered) */}
@@ -263,80 +342,158 @@ const Connect: React.FC<ConnectProps> = ({ connections, setConnections, connecte
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             {filteredSuggested.map((user) => {
-                const isConnected = connectedSuggestedIds.includes(user.id);
-                // Generate a random image for each suggested user
-                const gender = Math.random() > 0.5 ? 'men' : 'women';
-                const imgId = Math.floor(Math.random() * 99);
-                return (
-                    <div key={user.id} className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
-                    <div className="flex items-center mb-3">
-                        <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
-                        <img
-                            src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
-                            alt={user.name}
-                            className="w-12 h-12 object-cover rounded-full"
-                        />
-                        </div>
-                        <div>
-                        <h4 className="font-semibold text-lg">{user.name}</h4>
-                        <p className="text-gray-600 text-sm">{user.condition} • {user.location}</p>
-                        </div>
+              const isConnected = connectedSuggestedIds.includes(user.id);
+              // Generate a random image for each suggested user
+              const gender = Math.random() > 0.5 ? 'men' : 'women';
+              const imgId = Math.floor(Math.random() * 99);
+              return (
+                <div key={user.id} className="bg-blue-50 rounded-lg shadow p-6 border border-blue-200">
+                  <div className="flex items-center mb-3">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                      <img
+                        src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
+                        alt={user.name}
+                        className="w-12 h-12 object-cover rounded-full"
+                      />
                     </div>
-                    <p className="text-gray-700 mb-2 italic">"{user.bio}"</p>
-                    <div className="flex items-center justify-between mt-2">
-                        <span className="text-xs text-blue-800 bg-blue-100 rounded px-2 py-1">Similarity: {(user.similarity * 100).toFixed(1)}%</span>
-                        <button
-                        className={`px-4 py-1 rounded ${isConnected ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-                        onClick={() => handleConnectSuggested(user.id)}
-                        disabled={isConnected}
-                        >
-                        {isConnected ? 'Connected' : 'Connect'}
-                        </button>
+                    <div>
+                      <h4 className="font-semibold text-lg flex items-center gap-2">
+                        {user.name}
+                        <span className="ml-1 px-2 py-0.5 text-xs rounded bg-green-100 text-green-700 font-semibold">Patient</span>
+                      </h4>
+                      <p className="text-gray-600 text-sm">{user.condition} • {user.location}</p>
                     </div>
-                    </div>
-                );
+                  </div>
+                  <p className="text-gray-700 mb-2 italic">"{user.bio}"</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs text-blue-800 bg-blue-100 rounded px-2 py-1">Similarity: {(user.similarity * 100).toFixed(1)}%</span>
+                    <button
+                      className={`px-4 py-1 rounded ${isConnected ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                      onClick={() => handleConnectSuggested(user.id)}
+                      disabled={isConnected}
+                    >
+                      {isConnected ? 'Connected' : 'Connect'}
+                    </button>
+                  </div>
+                </div>
+              );
             })}
           </div>
         )}
       </div>
-
-      {/* Existing Connections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {filteredConnections.map((connection) => {
-            // Ge`nerate a random image for each connection
-            const gender = Math.random() > 0.5 ? 'men' : 'women';
-            const imgId = Math.floor(Math.random() * 99);
-            return (
-                <div key={connection.id} className="bg-white rounded-lg shadow p-6">
-                <div className="flex items-center mb-4">
-                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4 overflow-hidden">
-                    <img
+      {/* AI-Suggested Doctors Section */}
+      <div className="mb-8">
+        <h3 className="text-xl font-semibold mb-3 text-purple-700">AI-Suggested Doctors</h3>
+        {aiSuggestedDoctors.length === 0 ? (
+          <div className="text-gray-500">No AI-suggested doctors found for your profile/filter.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {aiSuggestedDoctors.map((doctor) => {
+              const gender = Math.random() > 0.5 ? 'men' : 'women';
+              const imgId = Math.floor(Math.random() * 99);
+              return (
+                <div key={doctor.id} className="bg-purple-50 rounded-lg shadow p-6 border border-purple-200">
+                  <div className="flex items-center mb-3">
+                    <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                      <img
                         src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
-                        alt={connection.name}
-                        className="w-16 h-16 object-cover rounded-full"
-                    />
+                        alt={doctor.name}
+                        className="w-12 h-12 object-cover rounded-full"
+                      />
                     </div>
                     <div>
-                    <h3 className="font-semibold text-lg">{connection.name}</h3>
-                    <p className="text-gray-600">{connection.condition}</p>
-                    <p className="text-sm text-gray-500">{connection.location}</p>
+                      <h4 className="font-semibold text-lg flex items-center gap-2">
+                        {doctor.name}
+                        <span className="ml-1 px-2 py-0.5 text-xs rounded bg-purple-200 text-purple-800 font-semibold">Doctor</span>
+                      </h4>
+                      <p className="text-gray-600 text-sm">{doctor.specialty} • {doctor.location}</p>
                     </div>
+                  </div>
+                  <p className="text-gray-700 mb-2 italic">"{doctor.bio}"</p>
                 </div>
-                <div className="mb-4">
-                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                    {connection.journey}
-                    </span>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      {/* Existing Connections */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        {filteredConnections.map((connection) => {
+          // Generate a random image for each connection
+          const gender = Math.random() > 0.5 ? 'men' : 'women';
+          const imgId = Math.floor(Math.random() * 99);
+          return (
+            <div key={connection.id} className="bg-white rounded-lg shadow p-6">
+              <div className="flex items-center mb-4">
+                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mr-4 overflow-hidden">
+                  <img
+                    src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
+                    alt={connection.name}
+                    className="w-16 h-16 object-cover rounded-full"
+                  />
                 </div>
-                <p className="text-green-600 font-medium mb-4">{connection.status}</p>
-                <button
-                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                    onClick={() => handleConnect(connection.id)}
-                >
-                    {connection.status === "Connected" ? "Message" : "Connect"}
-                </button>
+                <div>
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    {connection.name}
+                    <span className="ml-1 px-2 py-0.5 text-xs rounded bg-green-100 text-green-700 font-semibold">Patient</span>
+                  </h3>
+                  <p className="text-gray-600">{connection.condition}</p>
+                  <p className="text-sm text-gray-500">{connection.location}</p>
                 </div>
-            );
+              </div>
+              <div className="mb-4">
+                <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                  {connection.journey}
+                </span>
+              </div>
+              <p className="text-green-600 font-medium mb-4">{connection.status}</p>
+              <button
+                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                onClick={() => handleConnect(connection.id)}
+              >
+                {connection.status === "Connected" ? "Message" : "Connect"}
+              </button>
+            </div>
+          );
         })}
+      </div>
+
+
+
+      {/* Doctors Section (separate from patients) */}
+      <div className="mb-10">
+        <h3 className="text-xl font-semibold mb-3 text-blue-700">Find a Doctor</h3>
+        {filteredDoctors.length === 0 ? (
+          <div className="text-gray-500">No doctors found for your search/filter.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {filteredDoctors.map((doctor) => {
+              const gender = Math.random() > 0.5 ? 'men' : 'women';
+              const imgId = Math.floor(Math.random() * 99);
+              return (
+                <div key={doctor.id} className="bg-yellow-50 rounded-lg shadow p-6 border border-yellow-200">
+                  <div className="flex items-center mb-3">
+                    <div className="w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                      <img
+                        src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
+                        alt={doctor.name}
+                        className="w-12 h-12 object-cover rounded-full"
+                      />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-lg flex items-center gap-2">
+                        {doctor.name}
+                        <span className="ml-1 px-2 py-0.5 text-xs rounded bg-yellow-200 text-yellow-800 font-semibold">Doctor</span>
+                      </h4>
+                      <p className="text-gray-600 text-sm">{doctor.specialty} • {doctor.location}</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-700 mb-2 italic">"{doctor.bio}"</p>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
