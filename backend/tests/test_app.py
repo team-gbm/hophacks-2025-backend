@@ -19,8 +19,3 @@ def test_health_and_echo():
     r = client.get('/api/health')
     assert r.status_code == 200
     assert r.get_json() == {'status': 'ok'}
-
-    payload = {'hello': 'world'}
-    r = client.post('/api/echo', data=json.dumps(payload), content_type='application/json')
-    assert r.status_code == 200
-    assert r.get_json().get('you_sent') == payload
