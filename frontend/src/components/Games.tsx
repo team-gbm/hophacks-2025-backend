@@ -116,9 +116,9 @@ const Games: React.FC = () => {
   // === State ===
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [gameProgress, setGameProgress] = useState<GameProgress>({
-    completed: 0,
-    streak: 0,
-    totalScore: 0,
+    completed: 4,
+    streak: 82,
+    totalScore: 1200,
     lastPlayed: new Date().toISOString(),
     categoryProgress: {
       alzheimers: 0,
@@ -179,9 +179,10 @@ const Games: React.FC = () => {
 
   // Leaderboard State
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([
-    { id: 1, name: 'Alice', points: 120 },
-    { id: 2, name: 'Bob', points: 110 },
-    { id: 3, name: 'Charlie', points: 95 },
+    { id: 1, name: 'Alice', points: 14000 },
+    { id: 2, name: 'Bob', points: 11220 },
+    { id: 3, name: 'Charlie', points: 9995 },
+    { id: 3, name: 'Ali', points: 8000 },
     { id: 4, name: 'You', points: gameProgress.totalScore },
   ]);
 
@@ -628,17 +629,44 @@ const Games: React.FC = () => {
         Leaderboard
       </h2>
       <ol className="list-decimal list-inside space-y-2 text-gray-800">
-        {leaderboard.map((entry, idx) => (
-          <li
-            key={entry.id}
-            className={`flex justify-between items-center p-2 rounded ${
-              entry.id === 4 ? 'bg-purple-100 font-semibold' : ''
-            }`}
-          >
-            <span>{entry.name}</span>
-            <span>{entry.points} pts</span>
-          </li>
-        ))}
+        {leaderboard.map((entry, idx) => {
+          // Generate a random image for each leaderboard entry
+          const gender = Math.random() > 0.5 ? 'men' : 'women';
+          const imgId = Math.floor(Math.random() * 99);
+          // Assume id 4 is "You", others are friends if id < 4, else suggested
+          const isYou = entry.id === 4;
+          const isFriend = entry.id == 1 || entry.id == 3;
+          return (
+            <li
+              key={entry.id}
+              className={`flex justify-between items-center p-2 rounded ${
+                isYou ? 'bg-purple-100 font-semibold' : ''
+              }`}
+            >
+              <div className="flex items-center space-x-3">
+                <img
+                  src={`https://randomuser.me/api/portraits/${gender}/${imgId}.jpg`}
+                  alt={entry.name}
+                  className="w-8 h-8 rounded-full object-cover border border-purple-200"
+                />
+                <span>{entry.name}</span>
+                {isYou ? (
+                  <p></p>
+                ) : isFriend ? (
+                  <span className="ml-2 px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">Friend</span>
+                ) : (
+                  <span className="ml-2 px-2 py-0.5 bg-blue-100 text-gray-700 text-xs rounded-full">Connect</span>
+                )}
+                {isYou && (
+                  <span className="ml-4 px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
+                    Catch up with the leaders!
+                  </span>
+                )}
+              </div>
+              <span>{entry.points} pts</span>
+            </li>
+          );
+        })}
       </ol>
     </div>
   );
@@ -648,16 +676,97 @@ const Games: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <header className="mb-8">
-            <h1 className="text-4xl font-extrabold text-purple-700 flex items-center mb-2">
-              <Brain className="mr-3" size={36} />
-              Healing Through Mind & Body
-            </h1>
-            <p className="text-lg text-gray-700 max-w-3xl">
-              We believe healing is not only medical but also emotional and mental. That’s why our platform includes disease-specific activities and games to support patients in their journey:
+            {/* --- Knee Replacement Surgery Section --- */}
+        <section className="mb-10">
+          <div className="flex items-center mb-4">
+            <Activity className="text-blue-700 mr-3" size={32} />
+            <h2 className="text-3xl font-bold text-blue-700">
+              Knee Replacement Recovery: Your Progress & Activities
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+            {/* Example progress cards */}
+            <div className="p-6 bg-blue-50 rounded-lg flex flex-col items-center">
+              <span className="text-5xl mb-2">🚶‍♂️</span>
+              <h3 className="font-semibold text-lg text-blue-700 mb-1">Walking Practice</h3>
+              <p className="text-gray-700 text-center mb-2">Track your daily walking progress and milestones.</p>
+              <div className="text-blue-600 font-bold">Week 6: Walking with cane</div>
+            </div>
+            <div className="p-6 bg-green-50 rounded-lg flex flex-col items-center">
+              <span className="text-5xl mb-2">🦵</span>
+              <h3 className="font-semibold text-lg text-green-700 mb-1">Stretching & Mobility</h3>
+              <p className="text-gray-700 text-center mb-2">Gentle stretches to improve knee flexibility and strength.</p>
+              <div className="text-green-600 font-bold">Goal: Return to hiking by summer 2024</div>
+            </div>
+            <div className="p-6 bg-yellow-50 rounded-lg flex flex-col items-center">
+              <span className="text-5xl mb-2">🧘‍♂️</span>
+              <h3 className="font-semibold text-lg text-yellow-700 mb-1">Balance & Mindfulness</h3>
+              <p className="text-gray-700 text-center mb-2">Balance exercises and meditation for holistic recovery.</p>
+              <div className="text-yellow-600 font-bold">Physical therapy 3x/week</div>
+            </div>
+          </div>
+        </section>
+        {/* Overall Progress */}
+          <section className="bg-white rounded-lg shadow-lg p-6 mb-12 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-purple-700 mb-4 flex items-center">
+              <Trophy className="mr-2" size={28} />
+              Your Progress
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+              <div>
+                <div className="text-3xl font-extrabold text-blue-600">{gameProgress.completed}</div>
+                <div className="text-gray-600">Games Completed</div>
+              </div>
+              <div>
+                <div className="text-3xl font-extrabold text-yellow-500">{gameProgress.streak}</div>
+                <div className="text-gray-600">Day Streak</div>
+              </div>
+              <div>
+                <div className="text-3xl font-extrabold text-red-600">{gameProgress.totalScore}</div>
+                <div className="text-gray-600">Total Points</div>
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-gray-800">
+                  {new Date(gameProgress.lastPlayed).toLocaleDateString()}
+                </div>
+                <div className="text-gray-600">Last Played</div>
+              </div>
+            </div>
+          </section>
+
+          {/* Leaderboard */}
+          <Leaderboard />
+
+          {/* Encouragement */}
+          <section className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-lg p-6 mt-8 text-center max-w-4xl mx-auto">
+            <h3 className="text-xl font-semibold text-purple-800 mb-2">
+              You're doing great! 🌟
+            </h3>
+            <p className="text-purple-700 max-w-xl mx-auto">
+              Remember, every small step in your healing journey is a victory worth celebrating.
+              Take your time, enjoy the process, and be proud of your progress!
             </p>
-          </header>
+          </section>
+
+        {/* --- End Knee Replacement Section --- */}
+
+        {/* EXPLORE Section Divider */}
+        <div className="max-w-4xl mx-auto my-10 flex items-center">
+          <hr className="flex-grow border-t border-purple-300" />
+          <span className="mx-4 text-4xl font-bold text-purple-700 tracking-wide">EXPLORE</span>
+          <hr className="flex-grow border-t border-purple-300" />
+        </div>
+
+        {/* Header */}
+        <header className="mb-8">
+          <h1 className="text-4xl font-extrabold text-purple-700 flex items-center mb-2">
+            <Brain className="mr-3" size={36} />
+            Healing Through Mind & Body
+          </h1>
+          <p className="text-lg text-gray-700 max-w-3xl">
+            We believe healing is not only medical but also emotional and mental. That’s why our platform includes disease-specific activities and games to support patients in their journey:
+          </p>
+        </header>
 
           {/* Categories */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -766,48 +875,6 @@ const Games: React.FC = () => {
                 Completed: {gameProgress.categoryProgress.mentalHealth} | Points: {gameProgress.categoryPoints.mentalHealth}
               </div>
             </div>
-          </section>
-
-          {/* Overall Progress */}
-          <section className="bg-white rounded-lg shadow-lg p-6 mb-12 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-purple-700 mb-4 flex items-center">
-              <Trophy className="mr-2" size={28} />
-              Your Progress
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-              <div>
-                <div className="text-3xl font-extrabold text-blue-600">{gameProgress.completed}</div>
-                <div className="text-gray-600">Games Completed</div>
-              </div>
-              <div>
-                <div className="text-3xl font-extrabold text-yellow-500">{gameProgress.streak}</div>
-                <div className="text-gray-600">Day Streak</div>
-              </div>
-              <div>
-                <div className="text-3xl font-extrabold text-red-600">{gameProgress.totalScore}</div>
-                <div className="text-gray-600">Total Points</div>
-              </div>
-              <div>
-                <div className="text-lg font-semibold text-gray-800">
-                  {new Date(gameProgress.lastPlayed).toLocaleDateString()}
-                </div>
-                <div className="text-gray-600">Last Played</div>
-              </div>
-            </div>
-          </section>
-
-          {/* Leaderboard */}
-          <Leaderboard />
-
-          {/* Encouragement */}
-          <section className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-lg p-6 mt-8 text-center max-w-4xl mx-auto">
-            <h3 className="text-xl font-semibold text-purple-800 mb-2">
-              You're doing great! 🌟
-            </h3>
-            <p className="text-purple-700 max-w-xl mx-auto">
-              Remember, every small step in your healing journey is a victory worth celebrating.
-              Take your time, enjoy the process, and be proud of your progress!
-            </p>
           </section>
         </div>
       </div>
