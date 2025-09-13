@@ -58,7 +58,7 @@ export default function Profile({ profile, isEditing, editForm, setEditForm, onT
     <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
       {/* Random person image */}
       <img
-        src={`https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'men' : 'women'}/${Math.floor(Math.random() * 99)}.jpg`}
+        src={`https://randomuser.me/api/portraits/men/${Math.floor(Math.random() * 99)}.jpg`}
         alt="Profile"
         className="w-24 h-24 object-cover rounded-full"
       />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, Users, Play, Search, User, Home } from "lucide-react";
+import { Heart, Users, Play, Search, User, Home, Stethoscope } from "lucide-react";
 import Profile from './components/Profile'
 import Games from './components/Games';
 import Connect, { mockSuggested } from './components/Connect';
@@ -251,8 +251,8 @@ const App = () => {
                         className={`flex flex-col items-center py-3 px-6 ${activeTab === "games" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500"}`}
                         onClick={() => setActiveTab("games")}
                     >
-                        <Play size={20} />
-                        <span className="text-sm mt-1">Activity Centre</span>
+                        <Stethoscope size={20}/>
+                        <span className="text-sm mt-1">Heal</span>
                     </button>
                 </div>
             </nav>
