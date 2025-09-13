@@ -54,16 +54,23 @@ export default function Profile({ profile, isEditing, editForm, setEditForm, onT
   return (
     <div className="bg-white rounded-lg shadow">
       <div className="bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-t-lg text-white">
-        <div className="flex items-center space-x-6">
-          <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center"><User size={48} /></div>
-          <div>
-            <h1 className="text-2xl font-bold">{displayProfile.name}</h1>
-            <p className="text-blue-100">{displayProfile.age} years • {displayProfile.location}</p>
-            <p className="mt-2">{displayProfile.bio}</p>
-          </div>
-        </div>
-        <button onClick={onToggleEdit} className="mt-4 bg-white text-blue-600 px-4 py-2 rounded-lg">{isEditing ? 'Cancel Editing' : 'Edit Profile'}</button>
-      </div>
+  <div className="flex items-center space-x-6">
+    <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center overflow-hidden">
+      {/* Random person image */}
+      <img
+        src={`https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'men' : 'women'}/${Math.floor(Math.random() * 99)}.jpg`}
+        alt="Profile"
+        className="w-24 h-24 object-cover rounded-full"
+      />
+    </div>
+    <div>
+      <h1 className="text-2xl font-bold">{displayProfile.name}</h1>
+      <p className="text-blue-100">{displayProfile.age} years • {displayProfile.location}</p>
+      <p className="mt-2">{displayProfile.bio}</p>
+    </div>
+  </div>
+  <button onClick={onToggleEdit} className="mt-4 bg-white text-blue-600 px-4 py-2 rounded-lg">{isEditing ? 'Cancel Editing' : 'Edit Profile'}</button>
+</div>
 
       <div className="p-6">
         {initialLoading && (
