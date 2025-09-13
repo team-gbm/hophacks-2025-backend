@@ -1,9 +1,12 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
+import os
 
 # import the Mongo-backed blueprint
 from api import api_bp
 
+load_dotenv()
 app = Flask(__name__)
 CORS(app)
 

@@ -1,6 +1,8 @@
 from flask import Blueprint, jsonify, request
 from db import get_db
 from bson.objectid import ObjectId
+import os
+import google.generativeai as genai
 
 api_bp = Blueprint('api', __name__)
 
@@ -15,6 +17,28 @@ def oid(id_str):
 @api_bp.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'ok'})
+# AI search (Gemini proxy)
+
+
+@api_bp.route('/ai/search', methods=['POST'])
+def ai_search():
+    data = request.get_json() or {}
+    query = (data.get('query') or '').strip()
+    if not query:
+        return jsonify({'error': 'query is required'}), 400
+    api_key = "AIzaSyAooHmhujRJrNfFfqAPmdm44p4j8yosQyg"
+    if not api_key:
+        return jsonify({'error': 'Missing GEMINI_API_KEY/GOOGLE_API_KEY'}), 500
+    try:
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        prompt = f"You are a helpful health assistant. Answer succinctly with 3-5 bullet suggestions for: {query}. Include doctor types, self-care tips, and learning resources."
+        resp = model.generate_content(prompt)
+        text = (resp.text or '').strip()
+        return jsonify({'text': text})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 
 # Users

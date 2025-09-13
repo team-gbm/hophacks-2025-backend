@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Heart, Users, Play, User, Home, Stethoscope, Bot } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import Profile from './components/Profile'
 import Games from './components/Games';
 import Connect, { mockSuggested } from './components/Connect';
@@ -15,6 +17,7 @@ const App = () => {
     const [aiSearchOpen, setAISearchOpen] = useState(false);
     const [aiQuery, setAIQuery] = useState("");
     const [aiResults, setAIResults] = useState<string[]>([]);
+    const [aiMarkdown, setAIMarkdown] = useState<string>("");
     const [aiLoading, setAILoading] = useState(false);
     const aiSuggestions = [
         "Find doctors for knee pain",
@@ -23,22 +26,32 @@ const App = () => {
         "How to manage chronic pain?"
     ];
 
-    // Simulate AI backend call
+    // Call backend AI endpoint (Gemini proxy)
     const handleAISearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
-        if (!aiQuery.trim()) return;
+        const q = aiQuery.trim();
+        if (!q) return;
         setAILoading(true);
-        setAIResults([]);
-        // Simulate delay and mock results
-        setTimeout(() => {
-            setAIResults([
-                `AI Suggestion for: "${aiQuery}"`,
-                "- Connect with Dr. Emily Chen (Orthopedic)",
-                "- Read: 'Physical Therapy Basics'",
-                "- Join a support group for your condition"
-            ]);
+    setAIResults([]);
+    setAIMarkdown("");
+        try {
+            const res = await fetch('/api/ai/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query: q })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'AI error');
+            const text: string = data.text || '';
+            setAIMarkdown(text);
+            // Also keep lines for fallback, if needed
+            const lines = text.split(/\n+/).filter(Boolean);
+            setAIResults(lines);
+        } catch (err: any) {
+            setAIResults([`Error: ${err.message}`]);
+        } finally {
             setAILoading(false);
-        }, 1200);
+        }
     };
     const mock = {
         profile: {
@@ -280,12 +293,12 @@ const App = () => {
                                         </div>
                                     </div>
                                     {aiLoading && <div className="text-blue-600 mt-4">Thinking...</div>}
-                                    {aiResults.length > 0 && (
+                                    {!aiLoading && aiMarkdown && (
                                         <div className="mt-4">
                                             <div className="font-semibold mb-2 text-gray-700">AI Results:</div>
-                                            <ul className="list-disc pl-5 space-y-1">
-                                                {aiResults.map((r, i) => <li key={i}>{r}</li>)}
-                                            </ul>
+                                            <div className="prose prose-blue max-w-none text-sm">
+                                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{aiMarkdown}</ReactMarkdown>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
