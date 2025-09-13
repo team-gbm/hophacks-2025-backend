@@ -35,6 +35,46 @@ def ai_search():
         prompt = f"You are a helpful health assistant. Answer succinctly with 3-5 bullet suggestions for: {query}. Include doctor types, self-care tips, and learning resources."
         resp = model.generate_content(prompt)
         text = (resp.text or '').strip()
+        system_instruction = (
+            "You are LifeLine AI, a warm, empathetic assistant focused on health and philanthropy. "
+            "Provide supportive, non-judgmental guidance. Offer credible, general health information, "
+            "not medical diagnosis. Always include: (1) brief summary, (2) recommended care pathways with relevant clinician types, "
+            "(3) self-care and safety notes, (4) community/financial support (low-cost clinics, assistance programs, nonprofits, support groups), "
+            "and (5) learning resources. Respond in clear Markdown with headings and concise bullet points. If the query might indicate an emergency, "
+            "advise to seek immediate local emergency help. Avoid sensitive content and respect privacy."
+        )
+
+        generation_config = {
+            'temperature': 0.6,
+            'top_p': 0.9,
+            'top_k': 40,
+            'max_output_tokens': 512,
+            'response_mime_type': 'text/markdown',
+        }
+
+        safety_settings = [
+            { 'category': 'HARM_CATEGORY_HATE_SPEECH', 'threshold': 'BLOCK_LOW_AND_ABOVE' },
+            { 'category': 'HARM_CATEGORY_HARASSMENT', 'threshold': 'BLOCK_MEDIUM_AND_ABOVE' },
+            { 'category': 'HARM_CATEGORY_SEXUALLY_EXPLICIT', 'threshold': 'BLOCK_MEDIUM_AND_ABOVE' },
+            { 'category': 'HARM_CATEGORY_DANGEROUS_CONTENT', 'threshold': 'BLOCK_MEDIUM_AND_ABOVE' },
+        ]
+
+        model = genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            system_instruction=system_instruction,
+            generation_config=generation_config,
+            safety_settings=safety_settings,
+        )
+
+        user_prompt = (
+            f"User question: {query}\n\n"
+            "Please answer in Markdown with these sections:\n"
+            "## Summary\n"
+            "## Recommended Care Pathways\n"
+            "## Self-care & Safety\n"
+            "## Community & Financial Support\n"
+            "## Learn More\n"
+        )
         return jsonify({'text': text})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
