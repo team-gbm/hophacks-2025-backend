@@ -313,7 +313,7 @@ const Connect: React.FC<ConnectProps> = ({ connections, setConnections, connecte
         <div className="flex mb-2 w-full md:w-2/3 justify-center bg-gray-100 rounded-t-xl shadow-sm overflow-hidden">
           <button
             className={`flex-1 px-6 py-3 font-semibold text-lg transition-all duration-150 border-b-4 focus:outline-none ${activeTab === 'patients' ? 'border-blue-600 text-blue-700 bg-white shadow-md z-10' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-700 hover:bg-gray-50'}`}
-            style={{borderTopLeftRadius: '0.75rem'}} // rounded-tl-xl
+            style={{ borderTopLeftRadius: '0.75rem' }} // rounded-tl-xl
             onClick={() => setActiveTab('patients')}
             tabIndex={0}
           >
@@ -321,7 +321,7 @@ const Connect: React.FC<ConnectProps> = ({ connections, setConnections, connecte
           </button>
           <button
             className={`flex-1 px-6 py-3 font-semibold text-lg transition-all duration-150 border-b-4 focus:outline-none ${activeTab === 'doctors' ? 'border-blue-600 text-blue-700 bg-white shadow-md z-10' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-700 hover:bg-gray-50'}`}
-            style={{borderTopRightRadius: '0.75rem'}} // rounded-tr-xl
+            style={{ borderTopRightRadius: '0.75rem' }} // rounded-tr-xl
             onClick={() => setActiveTab('doctors')}
             tabIndex={0}
           >
