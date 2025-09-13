@@ -1,10 +1,9 @@
 import { useState } from 'react'
+import { useEffect } from 'react'
 import { UserProfile } from '../types'
 import { User, FileText, Calendar } from 'lucide-react'
-import { api } from '../client'
 
 type Props = {
-  userId: number
   profile: UserProfile
   isEditing: boolean
   editForm: UserProfile
@@ -12,56 +11,42 @@ type Props = {
   onToggleEdit: () => void
   onLocalSave?: (p: UserProfile) => void
 }
-
-export default function Profile({ userId, profile, isEditing, editForm, setEditForm, onToggleEdit, onLocalSave }: Props) {
+export default function Profile({ profile, isEditing, editForm, setEditForm, onToggleEdit, onLocalSave }: Props) {
   const [status, setStatus] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [displayProfile, setDisplayProfile] = useState<UserProfile>(profile)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   const update = (field: keyof UserProfile, value: any) => setEditForm({ ...editForm, [field]: value })
+  // initialize display profile from props
+  useEffect(() => {
+    setDisplayProfile(profile)
+    setEditForm(profile)
+    setInitialLoading(false)
+  }, [profile])
 
   const saveToServer = async () => {
+    // local save: update display and notify parent
     setLoading(true)
     setStatus(null)
     try {
-      // map frontend camelCase -> backend snake_case
-      const payload = {
-        name: editForm.name,
-        age: editForm.age,
-        location: editForm.location,
-        bio: editForm.bio,
-        condition: editForm.condition,
-        diagnosis_date: (editForm as any).diagnosisDate || (editForm as any).diagnosis_date,
-        hospital: editForm.hospital,
-        doctor: editForm.doctor,
-        treatment: editForm.treatment,
-        medications: editForm.medications,
-        progress: editForm.progress,
-        goals: editForm.goals,
-      }
-      const res = await api.put(`/profile/${userId}`, payload)
-      // backend returns { message, user }
-      const updatedUser = res?.user || res
-      const mappedBack = {
-        name: updatedUser.name || '',
-        age: updatedUser.age || 0,
-        location: updatedUser.location || '',
-        bio: updatedUser.bio || '',
-        condition: updatedUser.condition || '',
-        diagnosisDate: updatedUser.diagnosis_date || updatedUser.diagnosisDate || '',
-        hospital: updatedUser.hospital || '',
-        doctor: updatedUser.doctor || '',
-        treatment: updatedUser.treatment || '',
-        medications: updatedUser.medications || [],
-        progress: updatedUser.progress || '',
-        goals: updatedUser.goals || ''
-      }
-  setStatus('Profile saved')
-  onLocalSave && onLocalSave(mappedBack as UserProfile)
+      const mappedBack = { ...editForm }
+      setDisplayProfile(mappedBack)
+      onLocalSave && onLocalSave(mappedBack)
+      setStatus('Profile saved')
     } catch (err: any) {
-      setStatus(err?.message || 'Failed to save')
+      setStatus('Failed to save')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleRetry = () => {
+    // reinitialize from props
+    setStatus(null)
+    setDisplayProfile(profile)
+    setEditForm(profile)
+    setInitialLoading(false)
   }
 
   return (
@@ -70,32 +55,46 @@ export default function Profile({ userId, profile, isEditing, editForm, setEditF
         <div className="flex items-center space-x-6">
           <div className="w-24 h-24 bg-white bg-opacity-20 rounded-full flex items-center justify-center"><User size={48} /></div>
           <div>
-            <h1 className="text-2xl font-bold">{profile.name}</h1>
-            <p className="text-blue-100">{profile.age} years • {profile.location}</p>
-            <p className="mt-2">{profile.bio}</p>
+            <h1 className="text-2xl font-bold">{displayProfile.name}</h1>
+            <p className="text-blue-100">{displayProfile.age} years • {displayProfile.location}</p>
+            <p className="mt-2">{displayProfile.bio}</p>
           </div>
         </div>
         <button onClick={onToggleEdit} className="mt-4 bg-white text-blue-600 px-4 py-2 rounded-lg">{isEditing ? 'Cancel Editing' : 'Edit Profile'}</button>
       </div>
 
       <div className="p-6">
+        {initialLoading && (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-600"></div>
+          </div>
+        )}
+        {status && status.toLowerCase().includes('failed') && (
+          <div className="bg-red-50 border border-red-200 text-red-800 p-4 rounded mb-4">
+            <div className="font-semibold">Error</div>
+            <div className="text-sm">{status}</div>
+            <div className="mt-2">
+              <button onClick={handleRetry} className="mt-2 bg-red-600 text-white px-3 py-1 rounded">Retry</button>
+            </div>
+          </div>
+        )}
         {!isEditing ? (
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h2 className="text-lg font-semibold mb-4 flex items-center"><FileText className="mr-2" size={20} />Medical Information</h2>
                 <div className="space-y-3">
-                  <div><span className="font-medium">Condition:</span> {profile.condition}</div>
-                  <div><span className="font-medium">Diagnosed:</span> {profile.diagnosisDate}</div>
-                  <div><span className="font-medium">Hospital:</span> {profile.hospital}</div>
-                  <div><span className="font-medium">Doctor:</span> {profile.doctor}</div>
+                  <div><span className="font-medium">Condition:</span> {displayProfile.condition}</div>
+                  <div><span className="font-medium">Diagnosed:</span> {displayProfile.diagnosisDate}</div>
+                  <div><span className="font-medium">Hospital:</span> {displayProfile.hospital}</div>
+                  <div><span className="font-medium">Doctor:</span> {displayProfile.doctor}</div>
                 </div>
               </div>
 
               <div className="bg-green-50 p-4 rounded-lg">
                 <h2 className="text-lg font-semibold mb-4 flex items-center"><Calendar className="mr-2" size={20} />Treatment Plan</h2>
-                <div>{profile.treatment}</div>
-                <div className="mt-3"><span className="font-medium">Medications:</span> {profile.medications.join(', ')}</div>
+                <div>{displayProfile.treatment}</div>
+                <div className="mt-3"><span className="font-medium">Medications:</span> {displayProfile.medications.join(', ')}</div>
               </div>
             </div>
           </div>

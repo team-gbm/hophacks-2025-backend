@@ -1,7 +1,14 @@
-const BASE = import.meta.env.VITE_API_BASE || 'http://localhost:5000/api'
+// Use the configured VITE_API_BASE when provided. During dev, prefer the Vite proxy
+// by using a relative base (''), which avoids CORS issues and ensures requests
+// go through the dev server at /api.
+const DEV = Boolean(import.meta.env.DEV)
+const BASE = import.meta.env.VITE_API_BASE ?? (DEV ? '' : 'http://localhost:5000/api')
 
 async function request(path: string, opts: RequestInit = {}) {
-    const res = await fetch(BASE + path, {
+    const url = BASE + path
+    // small debug log to make it easy to see where requests go
+    console.log('[api] request]', opts.method || 'GET', url)
+    const res = await fetch(url, {
         headers: { 'Content-Type': 'application/json' },
         ...opts,
         body: opts.body ? JSON.stringify(opts.body) : undefined,
