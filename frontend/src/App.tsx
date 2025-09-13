@@ -47,15 +47,12 @@ const App = () => {
 
     const [connections, setConnections] = useState<any[]>([])
 
-    const [games, setGames] = useState<any[]>([])
-
     useEffect(() => {
         // Initialize with mock data
         setPosts(mock.posts)
         setUserProfile(mock.profile)
         setEditForm(mock.profile)
         setConnections(mock.connections)
-        setGames(mock.games)
     }, [])
 
     const handleAddPost = async () => {

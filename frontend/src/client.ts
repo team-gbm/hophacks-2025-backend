@@ -8,8 +8,13 @@ async function request(path: string, opts: RequestInit = {}) {
     const url = BASE + path
     // small debug log to make it easy to see where requests go
     console.log('[api] request]', opts.method || 'GET', url)
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('idToken') : null
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (token) headers['Authorization'] = `Bearer ${token}`
+
     const res = await fetch(url, {
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         ...opts,
         body: opts.body ? JSON.stringify(opts.body) : undefined,
     })

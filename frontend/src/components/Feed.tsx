@@ -15,8 +15,6 @@ interface FeedProps {
   currentUser: any;
 }
 
-const API_BASE = "/api";
-
 const Feed: React.FC<FeedProps> = ({ currentUser }) => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [newPost, setNewPost] = useState("");
@@ -28,56 +26,37 @@ const Feed: React.FC<FeedProps> = ({ currentUser }) => {
 
   const fetchPosts = async () => {
     try {
-      const response = await fetch(`${API_BASE}/posts`);
-      if (response.ok) {
-        const data = await response.json();
-        setPosts(data);
-      }
+      const data = await (await import('../client')).api.get('/posts')
+      setPosts(data)
     } catch (error) {
-      console.error('Failed to fetch posts:', error);
+      console.error('Failed to fetch posts:', error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 
   const handleAddPost = async () => {
     if (newPost.trim() && currentUser) {
       try {
-        const response = await fetch(`${API_BASE}/posts`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: currentUser.id,
-            content: newPost
-          })
-        });
-
-        if (response.ok) {
-          setNewPost("");
-          fetchPosts(); // Refresh posts
-        }
+        await (await import('../client')).api.post('/posts', {
+          author_id: currentUser.id,
+          content: newPost
+        })
+        setNewPost('')
+        fetchPosts()
       } catch (error) {
-        console.error('Failed to create post:', error);
+        console.error('Failed to create post:', error)
       }
     }
   };
 
   const handleLikePost = async (postId: number) => {
     try {
-      const response = await fetch(`${API_BASE}/posts/${postId}/like`, {
-        method: 'POST'
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setPosts(posts.map(post =>
-          post.id === postId ? { ...post, likes: data.likes } : post
-        ));
-      }
+      await (await import('../client')).api.post(`/posts/${postId}/like`, { user_id: currentUser?.id })
+      // refresh or apply returned changes
+      fetchPosts()
     } catch (error) {
-      console.error('Failed to like post:', error);
+      console.error('Failed to like post:', error)
     }
   };
 

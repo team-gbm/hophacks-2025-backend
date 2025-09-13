@@ -3,7 +3,7 @@ from pymongo import MongoClient
 
 
 def get_client():
-    uri = os.getenv('MONGODB_URI', 'mongodb://localhost:27017')
+    uri = os.getenv('MONGODB_URI', 'mongodb+srv://test:test@cluster0.l3ladts.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0')
     return MongoClient(uri)
 
 
