@@ -12,7 +12,7 @@ import {
   User,
   Users,
   BarChart2,
-  Heartbeat,
+  Activity as Heartbeat,
   Smile,
   BookOpen,
   Zap,
@@ -501,10 +501,10 @@ const Games: React.FC = () => {
     setDailyReflection((prev) =>
       prev
         ? {
-            ...prev,
-            userResponse: reflectionResponse,
-            isComplete: true,
-          }
+          ...prev,
+          userResponse: reflectionResponse,
+          isComplete: true,
+        }
         : null
     );
 
@@ -639,9 +639,8 @@ const Games: React.FC = () => {
           return (
             <li
               key={entry.id}
-              className={`flex justify-between items-center p-2 rounded ${
-                isYou ? 'bg-purple-100 font-semibold' : ''
-              }`}
+              className={`flex justify-between items-center p-2 rounded ${isYou ? 'bg-purple-100 font-semibold' : ''
+                }`}
             >
               <div className="flex items-center space-x-3">
                 <img
@@ -676,37 +675,37 @@ const Games: React.FC = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 p-6">
         <div className="max-w-7xl mx-auto">
-            {/* --- Knee Replacement Surgery Section --- */}
-        <section className="mb-10">
-          <div className="flex items-center mb-4">
-            <Activity className="text-blue-700 mr-3" size={32} />
-            <h2 className="text-3xl font-bold text-blue-700">
-              Knee Replacement Recovery: Your Progress & Activities
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
-            {/* Example progress cards */}
-            <div className="p-6 bg-blue-50 rounded-lg flex flex-col items-center">
-              <span className="text-5xl mb-2">🚶‍♂️</span>
-              <h3 className="font-semibold text-lg text-blue-700 mb-1">Walking Practice</h3>
-              <p className="text-gray-700 text-center mb-2">Track your daily walking progress and milestones.</p>
-              <div className="text-blue-600 font-bold">Week 6: Walking with cane</div>
+          {/* --- Knee Replacement Surgery Section --- */}
+          <section className="mb-10">
+            <div className="flex items-center mb-4">
+              <Activity className="text-blue-700 mr-3" size={32} />
+              <h2 className="text-3xl font-bold text-blue-700">
+                Knee Replacement Recovery: Your Progress & Activities
+              </h2>
             </div>
-            <div className="p-6 bg-green-50 rounded-lg flex flex-col items-center">
-              <span className="text-5xl mb-2">🦵</span>
-              <h3 className="font-semibold text-lg text-green-700 mb-1">Stretching & Mobility</h3>
-              <p className="text-gray-700 text-center mb-2">Gentle stretches to improve knee flexibility and strength.</p>
-              <div className="text-green-600 font-bold">Goal: Return to hiking by summer 2024</div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+              {/* Example progress cards */}
+              <div className="p-6 bg-blue-50 rounded-lg flex flex-col items-center">
+                <span className="text-5xl mb-2">🚶‍♂️</span>
+                <h3 className="font-semibold text-lg text-blue-700 mb-1">Walking Practice</h3>
+                <p className="text-gray-700 text-center mb-2">Track your daily walking progress and milestones.</p>
+                <div className="text-blue-600 font-bold">Week 6: Walking with cane</div>
+              </div>
+              <div className="p-6 bg-green-50 rounded-lg flex flex-col items-center">
+                <span className="text-5xl mb-2">🦵</span>
+                <h3 className="font-semibold text-lg text-green-700 mb-1">Stretching & Mobility</h3>
+                <p className="text-gray-700 text-center mb-2">Gentle stretches to improve knee flexibility and strength.</p>
+                <div className="text-green-600 font-bold">Goal: Return to hiking by summer 2024</div>
+              </div>
+              <div className="p-6 bg-yellow-50 rounded-lg flex flex-col items-center">
+                <span className="text-5xl mb-2">🧘‍♂️</span>
+                <h3 className="font-semibold text-lg text-yellow-700 mb-1">Balance & Mindfulness</h3>
+                <p className="text-gray-700 text-center mb-2">Balance exercises and meditation for holistic recovery.</p>
+                <div className="text-yellow-600 font-bold">Physical therapy 3x/week</div>
+              </div>
             </div>
-            <div className="p-6 bg-yellow-50 rounded-lg flex flex-col items-center">
-              <span className="text-5xl mb-2">🧘‍♂️</span>
-              <h3 className="font-semibold text-lg text-yellow-700 mb-1">Balance & Mindfulness</h3>
-              <p className="text-gray-700 text-center mb-2">Balance exercises and meditation for holistic recovery.</p>
-              <div className="text-yellow-600 font-bold">Physical therapy 3x/week</div>
-            </div>
-          </div>
-        </section>
-        {/* Overall Progress */}
+          </section>
+          {/* Overall Progress */}
           <section className="bg-white rounded-lg shadow-lg p-6 mb-12 max-w-4xl mx-auto">
             <h2 className="text-2xl font-bold text-purple-700 mb-4 flex items-center">
               <Trophy className="mr-2" size={28} />
@@ -748,25 +747,25 @@ const Games: React.FC = () => {
             </p>
           </section>
 
-        {/* --- End Knee Replacement Section --- */}
+          {/* --- End Knee Replacement Section --- */}
 
-        {/* EXPLORE Section Divider */}
-        <div className="max-w-4xl mx-auto my-10 flex items-center">
-          <hr className="flex-grow border-t border-purple-300" />
-          <span className="mx-4 text-4xl font-bold text-purple-700 tracking-wide">EXPLORE</span>
-          <hr className="flex-grow border-t border-purple-300" />
-        </div>
+          {/* EXPLORE Section Divider */}
+          <div className="max-w-4xl mx-auto my-10 flex items-center">
+            <hr className="flex-grow border-t border-purple-300" />
+            <span className="mx-4 text-4xl font-bold text-purple-700 tracking-wide">EXPLORE</span>
+            <hr className="flex-grow border-t border-purple-300" />
+          </div>
 
-        {/* Header */}
-        <header className="mb-8">
-          <h1 className="text-4xl font-extrabold text-purple-700 flex items-center mb-2">
-            <Brain className="mr-3" size={36} />
-            Healing Through Mind & Body
-          </h1>
-          <p className="text-lg text-gray-700 max-w-3xl">
-            We believe healing is not only medical but also emotional and mental. That’s why our platform includes disease-specific activities and games to support patients in their journey:
-          </p>
-        </header>
+          {/* Header */}
+          <header className="mb-8">
+            <h1 className="text-4xl font-extrabold text-purple-700 flex items-center mb-2">
+              <Brain className="mr-3" size={36} />
+              Healing Through Mind & Body
+            </h1>
+            <p className="text-lg text-gray-700 max-w-3xl">
+              We believe healing is not only medical but also emotional and mental. That’s why our platform includes disease-specific activities and games to support patients in their journey:
+            </p>
+          </header>
 
           {/* Categories */}
           <section className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -954,9 +953,8 @@ const Games: React.FC = () => {
           <button
             onClick={toggleMeditation}
             disabled={meditationCompleted}
-            className={`px-8 py-3 rounded-lg text-white text-lg font-semibold ${
-              meditationActive ? 'bg-pink-700 hover:bg-pink-800' : 'bg-pink-600 hover:bg-pink-700'
-            } ${meditationCompleted ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`px-8 py-3 rounded-lg text-white text-lg font-semibold ${meditationActive ? 'bg-pink-700 hover:bg-pink-800' : 'bg-pink-600 hover:bg-pink-700'
+              } ${meditationCompleted ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             {meditationActive ? 'Pause' : meditationCompleted ? 'Completed' : 'Start'}
           </button>

@@ -327,3 +327,39 @@ def ai_chat():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+# Insurance: simple plan summary stub for demo
+@api_bp.route('/insurance/summary', methods=['POST'])
+def insurance_summary():
+    body = request.get_json() or {}
+    provider = (body.get('provider') or '').strip()
+    member_id = (body.get('memberId') or body.get('member_id') or '').strip()
+    zip_code = (body.get('zip') or '').strip()
+    if not provider or not member_id:
+        return jsonify({'error': 'provider and memberId are required'}), 400
+
+    # Mocked data for demo; in real life query payer APIs or clearinghouses
+    network_note = 'Likely in-network' if zip_code else 'Check in-network by ZIP'
+    plan = {
+        'provider': provider,
+        'memberId': member_id,
+        'planName': f"{provider} Silver Care PPO",
+        'coverageYear': '2025',
+        'deductibleRemaining': 950,
+        'outOfPocketMaxRemaining': 2800,
+        'primaryCareCopay': 25,
+        'specialistCopay': 55,
+        'erCopay': 200,
+        'telehealthCopay': 10,
+        'preauthExamples': [
+            {'service': 'MRI (non-emergent)', 'preauthRequired': True},
+            {'service': 'Cardiac rehab', 'preauthRequired': False},
+        ],
+        'inNetworkTips': network_note,
+        'estimatedSavingsExamples': [
+            {'service': 'Primary care visit', 'inNetwork': 25, 'outOfNetwork': 95},
+            {'service': 'Specialist consultation', 'inNetwork': 55, 'outOfNetwork': 180},
+        ],
+    }
+    return jsonify(plan)
+

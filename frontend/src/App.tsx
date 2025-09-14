@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Heart, Users, Play, User, Home, Stethoscope, Bot, Image as ImageIcon } from "lucide-react";
+import { Heart, Users, Play, User, Home, Stethoscope, Bot, Image as ImageIcon, ShieldCheck } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Profile from './components/Profile'
@@ -23,6 +23,13 @@ const App = () => {
     const [aiLoading, setAILoading] = useState(false);
     const [chatMessages, setChatMessages] = useState<{ role: 'user' | 'assistant'; content: string }[]>([]);
     const [chatFiles, setChatFiles] = useState<File[]>([]);
+    // Insurance modal state
+    const [insOpen, setInsOpen] = useState(false);
+    const [insProvider, setInsProvider] = useState("");
+    const [insMemberId, setInsMemberId] = useState("");
+    const [insZip, setInsZip] = useState("");
+    const [insLoading, setInsLoading] = useState(false);
+    const [insResult, setInsResult] = useState<any>(null);
     const aiSuggestions = [
         "Find doctors for knee pain",
         "What is physical therapy?",
@@ -216,7 +223,7 @@ const App = () => {
                     }
                 ]
             }
-    ],
+        ],
         connections: [
             { id: 1, name: 'David R.', condition: 'Knee Surgery Recovery', journey: 'Week 3 of recovery', location: 'New York, USA', status: 'Similar journey' },
             { id: 2, name: 'Emma W.', condition: 'Multiple Sclerosis', journey: 'Managing symptoms for 2 years', location: 'London, UK', status: 'Can offer advice' }
@@ -275,7 +282,7 @@ const App = () => {
 
     const handleSelectMedia = (files: FileList | null) => {
         if (!files) return;
-        const allowed = ['image/png','image/jpeg','image/webp','image/gif','video/mp4','video/webm','video/ogg'];
+        const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'video/mp4', 'video/webm', 'video/ogg'];
         const maxFiles = 6;
         const maxSize = 15 * 1024 * 1024; // 15MB per file
         const next: { type: 'image' | 'video'; src: string; name: string }[] = [];
@@ -356,6 +363,13 @@ const App = () => {
                             onClick={() => setAISearchOpen(true)}
                         >
                             <Bot className="text-blue-500" size={24} />
+                        </button>
+                        <button
+                            className="transition-colors"
+                            aria-label="Insurance summary"
+                            onClick={() => setInsOpen(true)}
+                        >
+                            <ShieldCheck className="text-emerald-600" size={24} />
                         </button>
                         {/* AI Search Modal */}
                         {aiSearchOpen && (
@@ -466,6 +480,104 @@ const App = () => {
                     <hr className="border-t border-blue-100" />
                 </div>
             </header>
+            {/* Insurance Modal */}
+            {insOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                    <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md relative">
+                        <button
+                            className="absolute top-2 right-2 text-gray-400 hover:text-emerald-700"
+                            onClick={() => { setInsOpen(false); setInsResult(null); setInsLoading(false); }}
+                            aria-label="Close Insurance"
+                        >
+                            ×
+                        </button>
+                        <h3 className="text-xl font-bold mb-3 text-emerald-700 flex items-center gap-2"><ShieldCheck size={20} />Insurance Coverage</h3>
+                        <form
+                            onSubmit={async (e) => {
+                                e.preventDefault();
+                                setInsLoading(true);
+                                setInsResult(null);
+                                try {
+                                    const res = await fetch('/api/insurance/summary', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ provider: insProvider, memberId: insMemberId, zip: insZip })
+                                    });
+                                    const data = await res.json();
+                                    if (!res.ok) throw new Error(data.error || 'Insurance lookup error');
+                                    setInsResult(data);
+                                } catch (err: any) {
+                                    setInsResult({ error: err.message });
+                                } finally {
+                                    setInsLoading(false);
+                                }
+                            }}
+                            className="space-y-2"
+                        >
+                            <input
+                                type="text"
+                                className="w-full border border-emerald-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                                placeholder="Provider (e.g., Aetna, Cigna)"
+                                value={insProvider}
+                                onChange={(e) => setInsProvider(e.target.value)}
+                                required
+                            />
+                            <input
+                                type="text"
+                                className="w-full border border-emerald-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                                placeholder="Member ID"
+                                value={insMemberId}
+                                onChange={(e) => setInsMemberId(e.target.value)}
+                                required
+                            />
+                            <input
+                                type="text"
+                                className="w-full border border-emerald-200 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                                placeholder="ZIP (optional)"
+                                value={insZip}
+                                onChange={(e) => setInsZip(e.target.value)}
+                            />
+                            <div className="flex justify-end pt-1">
+                                <button type="submit" className="bg-emerald-600 text-white px-4 py-2 rounded font-semibold hover:bg-emerald-700" disabled={insLoading}>
+                                    {insLoading ? 'Checking…' : 'Check coverage'}
+                                </button>
+                            </div>
+                        </form>
+
+                        {insResult && (
+                            <div className="mt-4 text-sm">
+                                {insResult.error ? (
+                                    <div className="text-red-600">{insResult.error}</div>
+                                ) : (
+                                    <div className="prose prose-emerald max-w-none">
+                                        <h4 className="font-semibold">Plan summary</h4>
+                                        <ul>
+                                            <li><strong>Provider:</strong> {insResult.provider}</li>
+                                            <li><strong>Plan:</strong> {insResult.planName} · {insResult.coverageYear}</li>
+                                            <li><strong>Deductible remaining:</strong> ${insResult.deductibleRemaining}</li>
+                                            <li><strong>OOP max remaining:</strong> ${insResult.outOfPocketMaxRemaining}</li>
+                                            <li><strong>Copays:</strong> PCP ${insResult.primaryCareCopay}, Specialist ${insResult.specialistCopay}, ER ${insResult.erCopay}, Telehealth ${insResult.telehealthCopay}</li>
+                                            <li><strong>In‑network:</strong> {insResult.inNetworkTips}</li>
+                                        </ul>
+                                        <h5 className="font-semibold mt-2">Pre‑auth examples</h5>
+                                        <ul>
+                                            {insResult.preauthExamples?.map((p: any, i: number) => (
+                                                <li key={i}>{p.service}: {p.preauthRequired ? 'pre‑auth required' : 'no pre‑auth'}</li>
+                                            ))}
+                                        </ul>
+                                        <h5 className="font-semibold mt-2">Estimated savings</h5>
+                                        <ul>
+                                            {insResult.estimatedSavingsExamples?.map((s: any, i: number) => (
+                                                <li key={i}>{s.service}: in‑network ${s.inNetwork} vs out‑of‑network ${s.outOfNetwork}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
             {/* ...rest of your content... */}
 
             {/* Navigation */}
